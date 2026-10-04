@@ -1,0 +1,1868 @@
+:root {
+    --purple-primary: #7c3aed;
+}
+
+.generator-warning-banner {
+    background: linear-gradient(135deg, #fff1f2 0%, #ffe4e6 100%);
+    color: #9f1239;
+    border: 1px solid #fda4af;
+    border-left: 5px solid #e11d48;
+    border-radius: 12px;
+    padding: 0.9rem 1rem;
+    margin-bottom: 1rem;
+    font-weight: 800;
+    font-size: 0.98rem;
+    text-align: center;
+    box-shadow: 0 10px 24px rgba(190, 24, 93, 0.08);
+}
+
+.generator-help-banner {
+    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+    color: #1e3a8a;
+    border: 1px solid #93c5fd;
+    border-left: 5px solid #2563eb;
+    border-radius: 12px;
+    padding: 0.9rem 1rem;
+    box-shadow: 0 10px 24px rgba(37, 99, 235, 0.08);
+}
+
+.generator-help-banner small {
+    display: block;
+    font-size: 0.92rem;
+    line-height: 1.5;
+}
+
+/* Password field with toggle button */
+.password-field {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.password-field .form-control {
+    padding-right: 40px !important;
+}
+
+.btn-toggle-password {
+    position: absolute;
+    right: 10px;
+    background: none;
+    border: none;
+    color: #7c3aed;
+    cursor: pointer;
+    padding: 5px 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    transition: all 0.2s ease;
+    z-index: 10;
+}
+
+.btn-toggle-password:hover {
+    color: #6d28d9;
+    background-color: rgba(124, 58, 237, 0.1);
+    border-radius: 4px;
+}
+
+.btn-toggle-password:active {
+    transform: scale(0.95);
+}
+
+.btn-toggle-password i {
+    pointer-events: none;
+}
+
+body {
+    background: linear-gradient(135deg, #f5f3ff 0%, #faf5ff 100%) !important;
+    background-attachment: fixed !important;
+}
+
+.bg-purple {
+    background: var(--purple-primary);
+    z-index: 1060;
+}
+
+.nav-link {
+    cursor: pointer !important;
+    position: relative;
+    z-index: 1061;
+}
+
+.nav-link.active {
+    background: rgba(153, 42, 212, 0.18) !important;
+    border-radius: 8px;
+    font-weight: 600;
+}
+
+.navbar-toggler {
+    border: none;
+    outline: none;
+    z-index: 1062;
+}
+
+.text-purple {
+    color: var(--purple-primary);
+}
+
+.role-hidden {
+    display: none !important;
+}
+
+.badge-role {
+    font-size: 0.75rem;
+    padding: 5px 10px;
+    border-radius: 20px;
+}
+
+.table input {
+    width: 85px;
+    margin: 0 auto;
+    border-color: #7c3aed;
+    font-weight: bold;
+}
+
+.table-responsive {
+    max-height: 65vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    border-radius: 8px;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Estilos personalizados para el scrollbar vertical */
+.table-responsive::-webkit-scrollbar {
+    width: 10px;
+}
+
+.table-responsive::-webkit-scrollbar-track {
+    background: rgba(124, 58, 237, 0.08);
+    border-radius: 10px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #7c3aed, #a855f7);
+    border-radius: 10px;
+    transition: background 0.3s ease;
+}
+
+.table-responsive::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #6d28d9, #9333ea);
+}
+
+.sticky-table-shell {
+    position: relative;
+    overflow-y: auto;
+    overflow-x: auto;
+}
+
+.sticky-table {
+    margin-bottom: 0;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.sticky-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: #f8f9fa;
+    box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.08), 0 2px 0 rgba(255, 255, 255, 0.95);
+    white-space: nowrap;
+}
+
+.sticky-inventory-shell,
+.sticky-orders-shell {
+    max-height: 65vh;
+}
+
+.sticky-inventory-table thead th {
+    background: linear-gradient(180deg, #f8f9fa 0%, #eef1f4 100%);
+}
+
+.sticky-orders-table thead th {
+    background: linear-gradient(180deg, #f8f9fa 0%, #eef6fb 100%);
+}
+
+.card-stats {
+    border-left: 5px solid var(--purple-primary);
+}
+
+/* Modern Toggle Switch Redesign */
+.form-switch-modern {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 26px;
+    vertical-align: middle;
+}
+
+.form-switch-modern input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.switch-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 34px;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.switch-slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.form-switch-modern input:checked+.switch-slider {
+    background-color: #28a745;
+    /* Success Green */
+}
+
+.form-switch-modern input:checked+.switch-slider:before {
+    transform: translateX(24px);
+}
+
+/* Touch feedback */
+.form-switch-modern:active .switch-slider:before {
+    transform: scale(0.9);
+}
+
+/* Canvas/Chart Controls */
+canvas {
+    max-height: 400px !important;
+    max-width: 100% !important;
+}
+
+/* Modal Styles */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.modal-overlay.active {
+    display: flex !important;
+}
+/* Responsive - Tablet (992px y menores) */
+@media (max-width: 992px) {
+    :root {
+        font-size: 14px;
+    }
+    
+    .container, .dashboard-container {
+        padding: 15px;
+    }
+    
+    .card {
+        margin-bottom: 1rem;
+    }
+    
+    .row [class^="col-"] {
+        margin-bottom: 1rem;
+    }
+    
+    .top-bar-header {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .form-group {
+        margin-bottom: 0.75rem;
+    }
+    
+    input[type="text"],
+    input[type="number"],
+    input[type="date"],
+    input[type="email"],
+    select,
+    textarea {
+        font-size: 14px;
+        padding: 8px;
+    }
+    
+    table {
+        font-size: 13px;
+    }
+    
+    table td input,
+    table td select {
+        width: 70px;
+    }
+    
+    .modal-dialog {
+        max-width: 90%;
+    }
+    
+    .btn {
+        padding: 8px 12px;
+        font-size: 13px;
+    }
+}
+
+/* Responsive - Mobile y Tablet (768px y menores) */
+@media (max-width: 768px) {
+    :root {
+        font-size: 13px;
+    }
+    
+    .container, .dashboard-container {
+        padding: 12px;
+    }
+    
+    body {
+        overflow-x: hidden;
+    }
+    
+    .navbar {
+        padding: 0.5rem 0;
+    }
+    
+    .navbar-brand {
+        font-size: 1.1rem;
+        white-space: nowrap;
+    }
+    
+    .nav-link {
+        padding: 0.4rem 0.8rem !important;
+        font-size: 0.9rem;
+    }
+    
+    .btn-toggle {
+        padding: 4px 10px;
+        font-size: 12px;
+    }
+    
+    /* Cards responsivos */
+    .row-cols-4,
+    .row-cols-3,
+    [class*="col-md-"],
+    [class*="col-lg-"] {
+        --bs-columns: 2;
+    }
+    
+    .col:nth-child(n) {
+        flex: 0 0 calc(50% - 0.5rem);
+    }
+    
+    /* Tables en móvil */
+    .table-responsive {
+        font-size: 12px;
+    }
+    
+    table {
+        font-size: 12px;
+        display: block;
+        overflow-x: auto;
+    }
+    
+    table thead {
+        font-size: 11px;
+    }
+    
+    table th,
+    table td {
+        padding: 6px 4px;
+        white-space: nowrap;
+    }
+    
+    table td input,
+    table td select {
+        width: 60px;
+        padding: 4px 2px;
+        font-size: 11px;
+    }
+    
+    /* Modales */
+    .modal-dialog {
+        max-width: 95%;
+        margin: 0.5rem;
+    }
+    
+    .modal-header {
+        padding: 0.75rem;
+    }
+    
+    .modal-body {
+        padding: 0.75rem;
+    }
+    
+    /* Formularios */
+    .form-group {
+        margin-bottom: 0.5rem;
+    }
+    
+    label {
+        font-size: 0.85rem;
+        margin-bottom: 2px;
+    }
+    
+    input[type="text"],
+    input[type="number"],
+    input[type="date"],
+    input[type="email"],
+    input[type="password"],
+    select,
+    textarea {
+        font-size: 13px;
+        padding: 6px;
+        width: 100%;
+    }
+    
+    /* Botones */
+    .btn {
+        padding: 6px 10px;
+        font-size: 12px;
+        border-radius: 4px;
+    }
+    
+    .btn-sm {
+        padding: 4px 8px;
+        font-size: 11px;
+    }
+    
+    .btn-group,
+    .btn-group-pdf {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+    }
+    
+    .btn-group .btn,
+    .btn-group-pdf .btn {
+        flex: 1;
+        min-width: 70px;
+    }
+    
+    /* Badges */
+    .badge {
+        font-size: 10px;
+        padding: 3px 6px;
+    }
+    
+    /* Login */
+    .login-container {
+        padding: 10px;
+    }
+    
+    .login-card {
+        width: min(95vw, 320px);
+        padding: 1.5rem;
+    }
+    
+    .login-card input {
+        font-size: 16px;
+    }
+    
+    /* Headers */
+    .top-bar-header,
+    .report-header,
+    .header-controls {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .top-bar-header .btn,
+    .report-header .btn {
+        width: 100%;
+    }
+    
+    /* Selects */
+    select {
+        padding: 6px 4px;
+    }
+    
+    /* Secciones */
+    .section {
+        padding: 10px;
+        margin-bottom: 1rem;
+    }
+    
+    /* Tabs */
+    .nav-tabs {
+        gap: 4px;
+    }
+    
+    .nav-link {
+        border-radius: 4px 4px 0 0;
+        padding: 0.4rem 0.6rem;
+    }
+    
+    /* Alerts */
+    .alert {
+        padding: 0.5rem;
+        font-size: 12px;
+        margin-bottom: 0.5rem;
+    }
+}
+
+/* Responsive - Small Mobile (576px y menores) */
+@media (max-width: 576px) {
+    :root {
+        font-size: 12px;
+    }
+    
+    .container, .dashboard-container {
+        padding: 8px;
+    }
+    
+    /* Navegación */
+    .navbar {
+        padding: 0.3rem 0;
+    }
+    
+    .navbar-brand {
+        font-size: 0.95rem;
+    }
+    
+    .nav-link {
+        padding: 0.3rem 0.5rem !important;
+        font-size: 0.8rem;
+    }
+    
+    /* Grid en una columna */
+    .row-cols-4,
+    .row-cols-3,
+    .row-cols-2,
+    [class*="col-"],
+    .gastos-form-row {
+        --bs-columns: 1 !important;
+    }
+    
+    .col:nth-child(n) {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+    
+    /* Tarjetas pequeñas */
+    .card {
+        border-radius: 6px;
+        margin-bottom: 0.75rem;
+    }
+    
+    .card-header {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.9rem;
+    }
+    
+    .card-body {
+        padding: 0.75rem;
+    }
+    
+    /* Tablas comprimidas */
+    table {
+        font-size: 10px;
+    }
+    
+    table th,
+    table td {
+        padding: 4px 2px;
+    }
+    
+    table td input,
+    table td select {
+        width: 50px;
+        padding: 3px 2px;
+        font-size: 10px;
+    }
+    
+    /* Inputs pequeños */
+    input[type="text"],
+    input[type="number"],
+    input[type="date"],
+    input[type="email"],
+    input[type="password"],
+    select,
+    textarea {
+        font-size: 12px;
+        padding: 5px 4px;
+        border-radius: 4px;
+    }
+    
+    textarea {
+        resize: vertical;
+        min-height: 60px;
+    }
+    
+    /* Botones full-width */
+    .btn {
+        padding: 5px 8px;
+        font-size: 11px;
+        border-radius: 4px;
+        width: 100%;
+        margin-bottom: 4px;
+    }
+    
+    .btn-sm {
+        padding: 3px 6px;
+        font-size: 10px;
+    }
+    
+    .btn:last-child {
+        margin-bottom: 0;
+    }
+    
+    .btn-group,
+    .btn-group-pdf {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+    
+    .btn-group .btn,
+    .btn-group-pdf .btn {
+        width: 100%;
+    }
+    
+    /* Modales pequeños */
+    .modal-dialog {
+        max-width: 100%;
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        align-items: flex-end;
+    }
+    
+    .modal-content {
+        border-radius: 8px 8px 0 0;
+    }
+    
+    .modal-header {
+        padding: 0.5rem 0.75rem;
+    }
+    
+    .modal-body {
+        padding: 0.75rem;
+        max-height: 70vh;
+        overflow-y: auto;
+    }
+    
+    .modal-footer {
+        padding: 0.5rem;
+        gap: 4px;
+    }
+    
+    /* Login en móvil */
+    .login-container {
+        padding: 8px;
+        min-height: 100vh;
+    }
+    
+    .login-card {
+        width: 100%;
+        padding: 1.25rem;
+        border-radius: 8px;
+    }
+    
+    .login-card h2 {
+        font-size: 1.25rem;
+        margin-bottom: 1rem;
+    }
+    
+    .login-card input {
+        font-size: 16px;
+        margin-bottom: 0.75rem;
+    }
+    
+    /* Headers comprimidos */
+    .top-bar-header,
+    .report-header,
+    .header-controls {
+        flex-direction: column;
+        gap: 6px;
+    }
+    
+    .top-bar-header .btn,
+    .report-header .btn,
+    .header-controls .btn {
+        width: 100%;
+    }
+    
+    /* Selects */
+    select {
+        width: 100%;
+        padding: 5px 4px;
+    }
+    
+    /* Secciones */
+    .section {
+        padding: 8px;
+        margin-bottom: 0.75rem;
+        border-radius: 6px;
+    }
+    
+    /* Iconos pequeños */
+    .icon {
+        width: 20px;
+        height: 20px;
+        font-size: 14px;
+    }
+    
+    .badge {
+        font-size: 9px;
+        padding: 2px 4px;
+    }
+    
+    /* Tabs apilados */
+    .nav-tabs {
+        flex-direction: column;
+        gap: 4px;
+        border: none;
+    }
+    
+    .nav-link {
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+        padding: 0.4rem 0.5rem;
+        font-size: 0.75rem;
+    }
+    
+    .nav-link.active {
+        background-color: var(--purple-primary);
+        color: white;
+        border-color: var(--purple-primary);
+    }
+    
+    /* Alerts pequeños */
+    .alert {
+        padding: 0.4rem 0.5rem;
+        font-size: 11px;
+        margin-bottom: 0.4rem;
+        border-radius: 4px;
+    }
+    
+    /* Listas */
+    .list-group-item {
+        padding: 0.5rem 0.75rem;
+        font-size: 11px;
+    }
+    
+    /* Charts responsivos */
+    canvas {
+        max-width: 100%;
+        max-height: 200px;
+    }
+    
+    /* Flex containers con filtros en móviles - convertir a columnas */
+    .d-flex.justify-content-between.align-items-center,
+    .d-flex.align-items-center.align-items-md-end.gap-3.mb-4.flex-wrap,
+    .d-flex.gap-2.justify-content-lg-end.flex-wrap {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        justify-content: flex-start !important;
+    }
+    
+    /* Botones de exportar PDF en móviles */
+    #btn-export-reportes-pdf,
+    #btn-export-gastos-pdf,
+    #btn-export-stock-pdf {
+        width: 100% !important;
+        padding: 8px 12px !important;
+        font-size: 12px !important;
+        margin-top: 8px;
+        display: block !important;
+    }
+    
+    /* Contenedores de filtros en móviles */
+    .d-flex.align-items-center > div {
+        width: 100% !important;
+    }
+    
+    .d-flex.align-items-center > div input,
+    .d-flex.align-items-center > div select {
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+}
+
+/* =====================================================
+   ESTILOS PROFESIONALES PARA SECCIÓN FINANCIERA
+   ===================================================== */
+
+#sec-gastos .card {
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
+    border: none !important;
+    border-radius: 12px;
+}
+
+#sec-gastos .card:hover {
+    box-shadow: 0 4px 20px rgba(124, 58, 237, 0.12) !important;
+}
+
+#sec-gastos .card-body {
+    border-radius: 12px;
+}
+
+#sec-gastos h6 {
+    color: #7c3aed;
+    font-size: 1rem;
+    letter-spacing: 0.5px;
+    font-weight: 700;
+}
+
+#sec-gastos .table thead {
+    background-color: rgba(124, 58, 237, 0.05) !important;
+    border-bottom: 2px solid rgba(124, 58, 237, 0.2);
+}
+
+#sec-gastos .table th {
+    color: #7c3aed;
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 0.75rem !important;
+}
+
+#sec-gastos .table td {
+    padding: 0.6rem 0.75rem !important;
+    color: #5a5a5a;
+    border-color: rgba(0, 0, 0, 0.05);
+}
+
+#sec-gastos .table tbody tr {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.03);
+}
+
+#sec-gastos .table tbody tr:hover {
+    background-color: rgba(124, 58, 237, 0.02) !important;
+}
+
+#sec-gastos .sticky-top {
+    top: 0;
+    z-index: 10;
+    background-color: rgba(124, 58, 237, 0.05) !important;
+}
+
+#sec-gastos .form-control-sm,
+#sec-gastos .form-select-sm {
+    font-size: 0.875rem;
+    border-color: rgba(124, 58, 237, 0.3);
+}
+
+#sec-gastos .form-control-sm:focus,
+#sec-gastos .form-select-sm:focus {
+    border-color: #7c3aed;
+    box-shadow: 0 0 0 0.2rem rgba(124, 58, 237, 0.15);
+}
+
+#sec-gastos .btn-sm {
+    font-size: 0.85rem;
+    padding: 0.4rem 0.75rem;
+}
+
+#sec-gastos .btn-success {
+    background-color: #28a745;
+    border-color: #28a745;
+}
+
+#sec-gastos .btn-success:hover {
+    background-color: #218838;
+    border-color: #1e7e34;
+}
+
+#sec-gastos .border-start.border-4 {
+    border-left-width: 4px !important;
+}
+
+/* =====================================================
+   DASHBOARD DE FLUJO DE GASTOS
+   ===================================================== */
+
+.expense-flow-item {
+    padding: 14px 16px;
+    background: linear-gradient(135deg, rgba(124, 58, 237, 0.08) 0%, rgba(168, 85, 247, 0.05) 100%);
+    border-radius: 10px;
+    border: 2px solid rgba(124, 58, 237, 0.15);
+    transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+    box-shadow: 0 2px 8px rgba(124, 58, 237, 0.08);
+}
+
+.expense-flow-item:hover {
+    background: linear-gradient(135deg, rgba(124, 58, 237, 0.12) 0%, rgba(168, 85, 247, 0.1) 100%);
+    border-color: rgba(124, 58, 237, 0.3);
+    transform: translateX(4px) translateY(-1px);
+    box-shadow: 0 6px 16px rgba(124, 58, 237, 0.15);
+}
+
+.expense-flow-item .progress {
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.08);
+    height: 6px;
+    background: rgba(124, 58, 237, 0.1);
+}
+
+.expense-flow-item .progress-bar {
+    border-radius: 6px;
+    background: linear-gradient(90deg, #7c3aed 0%, #a855f7 100%);
+    transition: width 0.4s ease;
+}
+
+.expense-flow-item .badge {
+    font-size: 0.8rem;
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    box-shadow: 0 2px 6px rgba(124, 58, 237, 0.2);
+}
+
+/* =====================================================
+   ESTABILIZACIÓN DE SECCIÓN FINANCIERO
+   ===================================================== */
+
+#sec-gastos {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100%;
+    background: linear-gradient(180deg, #f5f3ff 0%, #faf9ff 100%);
+    border-radius: 0;
+}
+
+#sec-gastos .card {
+    margin-bottom: 1.5rem;
+}
+
+#sec-gastos .row {
+    height: auto;
+    min-height: 150px;
+}
+
+#sec-gastos > .row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+#sec-gastos .card.border-0 {
+    display: flex;
+    flex-direction: column;
+}
+
+#sec-gastos .card-body {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    max-height: 100%;
+}
+
+#expenseFlow {
+    flex: 1;
+    min-height: 200px;
+    max-height: calc(350px - 80px);
+    overflow-y: auto;
+    padding-right: 8px;
+}
+
+#expenseFlow::-webkit-scrollbar {
+    width: 8px;
+}
+
+#expenseFlow::-webkit-scrollbar-track {
+    background: rgba(124, 58, 237, 0.08);
+    border-radius: 3px;
+}
+
+#expenseFlow::-webkit-scrollbar-thumb {
+    background: rgba(124, 58, 237, 0.3);
+    border-radius: 3px;
+}
+
+#expenseFlow::-webkit-scrollbar-thumb:hover {
+    background: rgba(124, 58, 237, 0.5);
+}
+
+#chartGastosPorTienda {
+    display: block;
+    max-width: 100%;
+    max-height: 280px;
+}
+
+#lista-empleados-nomina {
+    max-height: 400px;
+    overflow-y: auto;
+    padding-right: 0.5rem;
+}
+
+#lista-empleados-nomina::-webkit-scrollbar {
+    width: 6px;
+}
+
+#lista-empleados-nomina::-webkit-scrollbar-track {
+    background: rgba(124, 58, 237, 0.05);
+    border-radius: 3px;
+}
+
+#lista-empleados-nomina::-webkit-scrollbar-thumb {
+    background: rgba(124, 58, 237, 0.3);
+    border-radius: 3px;
+}
+
+/* =====================================================
+   ESTILOS MEJORADOS PARA BOTÓN DE ESTADO (Stock Faltante)
+   ===================================================== */
+
+.btn-link {
+    color: inherit;
+}
+
+.btn-link:hover {
+    text-decoration: none;
+}
+
+/* Badge del estado con efectos hover */
+.badge[class*="bg-"] {
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.badge[class*="bg-"]:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    cursor: pointer;
+}
+
+.badge.bg-success:hover {
+    background-color: #1e7e34 !important;
+}
+
+.badge.bg-info:hover {
+    background-color: #0c5460 !important;
+}
+
+.badge.bg-warning:hover {
+    background-color: #856404 !important;
+}
+
+.dropdown-menu {
+    border: 1px solid rgba(124, 58, 237, 0.2);
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.dropdown-item {
+    transition: all 0.2s ease;
+    padding: 0.6rem 1rem;
+}
+
+.dropdown-item:hover {
+    background-color: rgba(124, 58, 237, 0.05);
+    transform: translateX(2px);
+}
+
+.dropdown-item.active,
+.dropdown-item:active {
+    background-color: rgba(124, 58, 237, 0.1);
+}
+
+
+/* IMPROVED PAYROLL LIST STYLING */
+
+#lista-empleados-nomina .list-group-item {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 247, 255, 0.9) 100%);
+    border: 1px solid rgba(124, 58, 237, 0.12);
+    border-radius: 10px;
+    margin-bottom: 8px;
+    padding: 12px 14px;
+    transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+    box-shadow: 0 2px 6px rgba(124, 58, 237, 0.05);
+}
+
+#lista-empleados-nomina .list-group-item:hover {
+    background: linear-gradient(135deg, rgba(124, 58, 237, 0.08) 0%, rgba(168, 85, 247, 0.05) 100%);
+    border-color: rgba(124, 58, 237, 0.25);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(124, 58, 237, 0.12);
+}
+
+#lista-empleados-nomina .list-group-item strong {
+    color: #7c3aed;
+    font-size: 0.95rem;
+    letter-spacing: 0.3px;
+}
+
+#lista-empleados-nomina .list-group-item small {
+    color: #6b7280;
+    font-size: 0.8rem;
+    display: block;
+    margin-top: 4px;
+}
+
+#lista-empleados-nomina .badge {
+    box-shadow: 0 2px 6px rgba(124, 58, 237, 0.2);
+}
+
+/* IMPROVED FORM ELEMENTS */
+
+.form-select, .form-control {
+    border-radius: 8px;
+    border: 1px solid rgba(124, 58, 237, 0.2);
+    transition: all 0.3s ease;
+}
+
+.form-select:focus, .form-control:focus {
+    border-color: #7c3aed;
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+}
+
+/* IMPROVED SCROLLBAR */
+
+#lista-empleados-nomina::-webkit-scrollbar {
+    width: 8px;
+}
+
+#lista-empleados-nomina::-webkit-scrollbar-track {
+    background: rgba(124, 58, 237, 0.08);
+    border-radius: 4px;
+}
+
+#lista-empleados-nomina::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #7c3aed 0%, #a855f7 100%);
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+#lista-empleados-nomina::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #6c20e0 0%, #9333ea 100%);
+}
+
+/* ENHANCED FINANCIERO SECTION STYLING */
+
+#sec-reportes {
+    background: linear-gradient(180deg, #f5f3ff 0%, #faf9ff 100%) !important;
+    padding: 0 !important;
+}
+
+#sec-reportes .card {
+    transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+    border: none !important;
+    border-radius: 12px;
+}
+
+#sec-reportes .card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 15px 50px rgba(6, 182, 212, 0.15) !important;
+}
+
+#sec-reportes h5 {
+    color: #06b6d4;
+    font-size: 1.1rem;
+    letter-spacing: 0.5px;
+    font-weight: 700;
+}
+
+#sec-reportes .table thead th {
+    color: #06b6d4;
+    font-weight: 700;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 1rem 0.75rem;
+    border: none;
+}
+
+#sec-reportes .table tbody tr {
+    border-bottom: 1px solid rgba(6, 182, 212, 0.08);
+    transition: background-color 0.2s ease;
+}
+
+#sec-reportes .table tbody tr:hover {
+    background-color: rgba(6, 182, 212, 0.03) !important;
+}
+
+#sec-reportes .table td {
+    padding: 0.85rem 0.75rem;
+    color: #374151;
+    border: none;
+    vertical-align: middle;
+}
+
+#sec-reportes input[type="date"],
+#sec-reportes .form-select {
+    border-radius: 8px;
+    border: 1px solid rgba(6, 182, 212, 0.2) !important;
+    background-color: rgba(255, 255, 255, 0.95);
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+#sec-reportes input[type="date"]:focus,
+#sec-reportes .form-select:focus {
+    border-color: #06b6d4 !important;
+    box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.1);
+}
+
+#sec-reportes .table-responsive {
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+/* Responsive improvements for Financiero */
+@media (max-width: 768px) {
+    #sec-reportes .d-flex.flex-wrap {
+        flex-direction: column;
+    }
+    
+    #sec-reportes .table {
+        font-size: 0.8rem;
+    }
+    
+    #sec-reportes .table th,
+    #sec-reportes .table td {
+        padding: 0.6rem 0.4rem;
+    }
+}
+
+/* ========== EMPLOYEE SECTION STYLING ========== */
+#lista-empleados-gestion .list-group-item {
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    background: linear-gradient(135deg, #f9fafb 0%, #ffffff 100%);
+    padding: 14px 16px !important;
+    transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+#lista-empleados-gestion .list-group-item:hover {
+    transform: translateY(-2px);
+    border-color: #7c3aed;
+    box-shadow: 0 8px 24px rgba(124, 58, 237, 0.15);
+}
+
+#lista-empleados-gestion .fw-bold {
+    color: #1f2937;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+}
+
+#lista-empleados-gestion .text-muted {
+    color: #6b7280 !important;
+    font-size: 0.85rem;
+    margin-top: 6px;
+}
+
+#lista-empleados-gestion .badge {
+    padding: 6px 10px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: 6px;
+    letter-spacing: 0.3px;
+}
+
+#lista-empleados-gestion .badge.bg-info {
+    background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%) !important;
+    box-shadow: 0 4px 12px rgba(6, 182, 212, 0.2);
+}
+
+#lista-empleados-gestion .badge.bg-success {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+}
+
+#lista-empleados-gestion .badge.bg-secondary {
+    background: linear-gradient(135deg, #9ca3af 0%, #6b7280 100%) !important;
+    box-shadow: 0 4px 12px rgba(155, 163, 175, 0.2);
+}
+
+#lista-empleados-gestion .badge.bg-danger {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+    color: white !important;
+}
+
+#lista-empleados-gestion .badge.bg-warning {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);
+    color: white;
+}
+
+#lista-empleados-gestion .btn-group-sm {
+    display: flex;
+    gap: 6px;
+}
+
+#lista-empleados-gestion .btn-outline-danger,
+#lista-empleados-gestion .btn-outline-success {
+    border: 2px solid #e5e7eb;
+    border-radius: 6px;
+    padding: 6px 9px;
+    font-size: 0.85rem;
+    transition: all 0.3s ease;
+    background-color: transparent;
+}
+
+#lista-empleados-gestion .btn-outline-danger {
+    color: #dc2626;
+}
+
+#lista-empleados-gestion .btn-outline-danger:hover {
+    background-color: #fee2e2;
+    border-color: #dc2626;
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.2);
+    transform: translateY(-1px);
+}
+
+#lista-empleados-gestion .btn-outline-success {
+    color: #16a34a;
+}
+
+#lista-empleados-gestion .btn-outline-success:hover {
+    background-color: #dcfce7;
+    border-color: #16a34a;
+    box-shadow: 0 4px 12px rgba(22, 163, 74, 0.2);
+    transform: translateY(-1px);
+}
+
+/* Empty state styling */
+#lista-empleados-gestion > p {
+    color: #9ca3af;
+    padding: 30px 20px !important;
+    font-size: 0.95rem;
+    font-weight: 500;
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 768px) {
+    #lista-empleados-gestion .list-group-item {
+        padding: 12px 14px !important;
+        margin-bottom: 10px;
+    }
+    
+    #lista-empleados-gestion .d-flex {
+        flex-direction: column !important;
+    }
+    
+    #lista-empleados-gestion .btn-group-sm {
+        margin-top: 10px;
+        justify-content: flex-start;
+    }
+    
+    #btn-add-employee {
+        width: 100%;
+        margin-top: 10px;
+    }
+}
+
+/* ========== TIENDA/STORE SECTION STYLING ========== */
+.tiendas-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 18px;
+    padding: 4px 0;
+}
+
+.tienda-card {
+    background: linear-gradient(135deg, #f9fafb 0%, #ffffff 100%);
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 18px;
+    transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    position: relative;
+    overflow: hidden;
+}
+
+.tienda-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #7c3aed 0%, #06b6d4 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.tienda-card:hover {
+    transform: translateY(-3px);
+    border-color: #7c3aed;
+    box-shadow: 0 12px 32px rgba(124, 58, 237, 0.15);
+}
+
+.tienda-card:hover::before {
+    opacity: 1;
+}
+
+.tienda-card-content {
+    display: flex;
+    flex-direction: column;
+}
+
+.tienda-nombre-wrapper {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+}
+
+.tienda-icon {
+    flex-shrink: 0;
+    width: 44px;
+    height: 44px;
+    background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.25rem;
+    box-shadow: 0 4px 12px rgba(124, 58, 237, 0.2);
+}
+
+.tienda-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.tienda-nombre {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin: 0 0 10px 0;
+    letter-spacing: 0.3px;
+    word-break: break-word;
+}
+
+.tienda-direccion-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #7c3aed;
+    text-transform: uppercase;
+}
+
+/* ========== INVENTORY TABLE RESPONSIVE IMPROVEMENTS ========== */
+#sec-inventario #listaInventario td:first-child {
+    white-space: normal !important;
+    word-break: break-word;
+    word-wrap: break-word;
+}
+
+/* ========== ENHANCED IMAGE STYLING ========== */
+
+/* Logo general improvements */
+img[alt*="Brasil"],
+img[alt*="logo"],
+.navbar-brand img,
+#btn-install-login img {
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+    transition: all 0.3s ease;
+}
+
+/* Login logo styling */
+.card img[alt*="Brasil"] {
+    filter: drop-shadow(0 4px 8px rgba(124, 58, 237, 0.2));
+    transform: scale(1);
+    transition: transform 0.3s ease, filter 0.3s ease;
+}
+
+.card:hover img[alt*="Brasil"] {
+    transform: scale(1.02);
+    filter: drop-shadow(0 6px 12px rgba(124, 58, 237, 0.3));
+}
+
+/* Navbar logo responsive */
+.navbar-brand img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    object-fit: contain;
+}
+
+/* Better responsive logo sizing */
+@media (min-width: 1200px) {
+    .navbar-brand img {
+        height: 55px;
+    }
+}
+
+@media (min-width: 992px) and (max-width: 1199px) {
+    .navbar-brand img {
+        height: 50px;
+    }
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+    .navbar-brand img {
+        height: 45px;
+    }
+}
+
+@media (max-width: 767px) {
+    .navbar-brand img {
+        height: 40px;
+    }
+}
+
+/* Login background improvements */
+#auth-container {
+    background-attachment: fixed !important;
+    background-size: cover !important;
+    background-position: center !important;
+    min-height: 100vh;
+}
+
+/* Login card backdrop improvements */
+.card {
+    backdrop-filter: blur(10px);
+    background-color: rgba(255, 255, 255, 0.98) !important;
+}
+
+/* Ensure images are crisp */
+img {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+}
+
+/* SVG and PNG improvements */
+img[src$=".png"],
+img[src$=".jpg"],
+img[src$=".jpeg"],
+img[src$=".svg"] {
+    display: block;
+    max-width: 100%;
+    height: auto;
+}
+
+/* Login area responsiveness for images */
+@media (max-width: 768px) {
+    .card img[alt*="Brasil"] {
+        max-height: 120px;
+    }
+}
+
+@media (max-width: 576px) {
+    .card img[alt*="Brasil"] {
+        max-height: 100px;
+        margin-bottom: 15px;
+    }
+}
+
+/* PWA Install Modal Styles */
+#pwa-install-modal .card {
+    max-width: 90vw;
+    width: 100%;
+    animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Mobile-responsive PWA modal */
+@media (max-width: 576px) {
+    #pwa-install-modal .card {
+        max-width: 95vw;
+        border-radius: 12px;
+        max-height: 80vh;
+    }
+    
+    #pwa-install-modal .card h5 {
+        font-size: 1.1rem;
+    }
+    
+    #pwa-install-modal .card p {
+        font-size: 0.9rem;
+        line-height: 1.5;
+    }
+}
+
+#sec-inventario #listaInventario td:first-child .input-grupo {
+    min-width: 150px;
+}
+
+#sec-inventario #listaInventario td:first-child .input-producto {
+    min-width: 130px;
+    width: fit-content !important;
+    max-width: 280px;
+    white-space: normal !important;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.4;
+    height: auto;
+    padding: 8px 6px !important;
+}
+
+/* Mobile optimizations for inventory products */
+@media (max-width: 768px) {
+    #sec-inventario #listaInventario td:first-child {
+        min-width: 120px;
+        padding: 8px 4px !important;
+    }
+    
+    #sec-inventario #listaInventario td:first-child .input-producto {
+        min-width: 110px;
+        width: fit-content !important;
+        max-width: 200px;
+        font-size: 12px;
+        padding: 6px 4px !important;
+        line-height: 1.3;
+        white-space: normal !important;
+        word-break: break-word;
+    }
+    
+    #sec-inventario table tbody tr td {
+        white-space: normal !important;
+    }
+}
+
+/* Extra small devices */
+@media (max-width: 576px) {
+    #sec-inventario #listaInventario td:first-child {
+        min-width: 100px;
+        padding: 6px 2px !important;
+    }
+    
+    #sec-inventario #listaInventario td:first-child .input-producto {
+        min-width: 95px;
+        width: fit-content !important;
+        max-width: 180px;
+        font-size: 11px;
+        padding: 5px 3px !important;
+        line-height: 1.2;
+        white-space: normal !important;
+    }
+}
+
+.direccion-editable {
+    font-size: 0.95rem;
+    color: #4b5563;
+    line-height: 1.5;
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    background: #f3f4f6;
+    transition: all 0.2s ease;
+    word-break: break-word;
+    min-height: 38px;
+    display: flex;
+    align-items: center;
+}
+
+.direccion-editable[contenteditable="true"] {
+    cursor: pointer;
+    background: #fafafa;
+    border: 1px solid #e5e7eb;
+}
+
+.direccion-editable[contenteditable="true"]:hover {
+    background: #f3f4f6;
+    border-color: #7c3aed;
+}
+
+.direccion-editable[contenteditable="true"]:focus {
+    background: white;
+    border-color: #7c3aed !important;
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+    outline: none;
+}
+
+/* Botones de editar y eliminar tienda */
+.btn-tienda-edit,
+.btn-tienda-delete {
+    transition: all 0.2s ease;
+}
+
+.btn-tienda-edit:hover {
+    color: #a855f7 !important;
+    transform: scale(1.15);
+}
+
+.btn-tienda-delete:hover {
+    color: #ef4444 !important;
+    transform: scale(1.15);
+}
+
+.btn-tienda-edit:active,
+.btn-tienda-delete:active {
+    transform: scale(0.95);
+}
+
+/* Empty state styling for tiendas */
+#lista-tiendas > .empty-state {
+    grid-column: 1 / -1;
+    padding: 40px 20px;
+    text-align: center;
+    color: #9ca3af;
+}
+
+#lista-tiendas > .empty-state i {
+    font-size: 2rem;
+    margin-bottom: 10px;
+    opacity: 0.5;
+}
+
+/* Mobile responsive adjustments for tiendas */
+@media (max-width: 1024px) {
+    .tiendas-container {
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 16px;
+    }
+}
+
+@media (max-width: 768px) {
+    .tiendas-container {
+        grid-template-columns: 1fr;
+        gap: 14px;
+    }
+    
+    .tienda-card {
+        padding: 16px;
+    }
+    
+    .tienda-nombre {
+        font-size: 1rem;
+    }
+    
+    .tienda-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 1.1rem;
+    }
+    
+    .direccion-editable {
+        font-size: 0.9rem;
+        padding: 8px;
+    }
+}
+
+/* ========== LOGIN PAGE INSTALL BUTTON ========== */
+#btn-install-login {
+    position: relative;
+    overflow: hidden;
+    font-weight: 700 !important;
+    letter-spacing: 0.5px;
+    transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1) !important;
+}
+
+#btn-install-login::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.2);
+    transition: left 0.3s ease;
+}
+
+#btn-install-login:hover::before {
+    left: 100%;
+}
+
+#btn-install-login:active {
+    transform: scale(0.98) !important;
+}
+
+/* ========== MEJORAS RESPONSIVAS FINALES ========== */
+
+/* Modal mejorado para móviles */
+.modal-overlay {
+    padding: 10px !important;
+}
+
+.modal-overlay .card {
+    margin: auto;
+    max-height: 95vh;
+    overflow-y: auto;
+}
+
+@media (max-width: 576px) {
+    /* Modales ocupan toda la pantalla en móviles */
+    .modal-overlay {
+        padding: 0 !important;
+        align-items: flex-end !important;
+    }
+    
+    .modal-overlay .card {
+        width: 100% !important;
+        max-width: 100% !important;
+        border-radius: 16px 16px 0 0;
+        max-height: 85vh;
+        margin: 0;
+    }
+    
+    .modal-overlay .card-header {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%) !important;
+    }
+    
+    .modal-overlay .card-body {
+        overflow-y: auto;
+        max-height: calc(85vh - 60px);
+    }
+    
+    /* Inputs en modales ocupan ancho completo */
+    .modal-overlay input,
+    .modal-overlay select,
+    .modal-overlay textarea {
+        width: 100% !important;
+    }
+    
+    /* Botones en modales apilados */
+    .modal-overlay .card-footer {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .modal-overlay .card-footer .btn {
+        width: 100%;
+    }
+    
+    /* Filtros de reportes en móvil */
+    #sec-reportes .d-flex.align-items-center {
+        flex-direction: column !important;
+        align-items: stretch !important;
+    }
+    
+    #sec-reportes #fechaReporteSelect,
+    #sec-reportes #provReporteSelect {
+        width: 100% !important;
+        margin-bottom: 8px;
+    }
+    
+    /* Tabla de gases en móvil */
+    #sec-gastos > .row {
+        grid-template-columns: 1fr !important;
+    }
+}

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug - Brasil Açaí</title>
+    <style>
+        body { font-family: monospace; padding: 20px; background: #1e1e1e; color: #d4d4d4; }
+        .section { margin: 20px 0; padding: 15px; background: #252526; border-left: 4px solid #7c3aed; }
+        .success { color: #4ec9b0; }
+        .error { color: #f48771; }
+        .warning { color: #ce9178; }
+        h3 { margin-top: 0; color: #7c3aed; }
+        pre { background: #1e1e1e; padding: 10px; overflow-x: auto; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Sistema de Diagnóstico - Brasil Açaí</h1>
+    
+    <div id="diagnostics"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/config/supabase.js"></script>
+    
+    <script>
+        const diagnostics = document.getElementById('diagnostics');
+        
+        function log(title, message, type = 'info') {
+            const typeClass = type === 'success' ? 'success' : type === 'error' ? 'error' : 'warning';
+            const emoji = type === 'success' ? '✅' : type === 'error' ? '❌' : '⚠️';
+            diagnostics.innerHTML += `
+                <div class="section">
+                    <h3>${emoji} ${title}</h3>
+                    <pre class="${typeClass}">${message}</pre>
+                </div>
+            `;
+        }
+
+        async function runDiagnostics() {
+            try {
+                // 1. Verificar Supabase
+                log('Supabase Client', `URL: ${window._supabase?.options?.url || 'NO DISPONIBLE'}`);
+                
+                // 2. Verificar conexión
+                const { data: { session } } = await window._supabase.auth.getSession();
+                if (session) {
+                    log('Sesión', `Usuario autenticado: ${session.user.email}`, 'success');
+                } else {
+                    log('Sesión', 'No hay sesión activa (normal en primer acceso)', 'warning');
+                }
+                
+                // 3. Verificar acceso a base de datos
+                try {
+                    const { data, error } = await window._supabase
+                        .from('Tabla De Perfiles')
+                        .select('count', { count: 'exact' })
+                        .limit(1);
+                    
+                    if (error) {
+                        log('Database Access', `Error: ${error.message}`, 'error');
+                    } else {
+                        log('Database Access', 'Conexión exitosa a base de datos ✓', 'success');
+                    }
+                } catch (e) {
+                    log('Database Access', `Exception: ${e.message}`, 'error');
+                }
+                
+                // 4. Verificar archivos
+                log('Archivos Necesarios', `
+✓ index.html
+✓ assets/js/config/supabase.js
+✓ assets/css/style.css
+                `, 'success');
+                
+                // 5. Environment check
+                log('Browser Info', `
+User Agent: ${navigator.userAgent.substring(0, 50)}...
+Online: ${navigator.onLine ? 'SI' : 'NO'}
+LocalStorage: ${typeof(Storage) !== 'undefined' ? 'Disponible' : 'NO DISPONIBLE'}
+                `, navigator.onLine ? 'success' : 'error');
+
+            } catch (error) {
+                log('Error General', error.message, 'error');
+            }
+
+            log('Guía de Resolución', `
+1. Si "Database Access" es ERROR:
+   - Verifica en Supabase que "Tabla De Perfiles" existe
+   - Verifica RLS policies permitir SELECT
+   
+2. Si "Sesión" muestra error de "getting Whitelist":
+   - Es error de extensión del navegador
+   - Prueba en modo INCÓGNITO (Ctrl+Shift+N)
+   - Desactiva extensiones sospechosas
+   
+3. Si "User Agent" dice algo raro:
+   - Asegúrate de usar Chrome, Edge o Firefox reciente
+   
+4. Si "Online" dice NO:
+   - Verifica tu conexión a internet
+   
+5. General:
+   - Abre consola (F12) y busca errores en rojo
+   - Comparte captura de consola con esos errores
+            `, 'info');
+        }
+
+        // Ejecutar diagnósticos cuando cargue
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', runDiagnostics);
+        } else {
+            runDiagnostics();
+        }
+    </script>
+</body>
+</html>

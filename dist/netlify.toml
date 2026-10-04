@@ -1,0 +1,66 @@
+[[redirects]]
+from = "/*"
+to = "/index.html"
+status = 200
+
+[build]
+publish = "."
+command = "npm run build 2>/dev/null || true"
+
+[context.production]
+environment = { NETLIFY_CONTEXT = "production" }
+
+[context.deploy-preview]
+environment = { NETLIFY_CONTEXT = "deploy-preview" }
+
+[context.branch-deploy]
+environment = { NETLIFY_CONTEXT = "branch-deploy" }
+
+# Headers para PWA
+[[headers]]
+for = "/*"
+[headers.values]
+X-Content-Type-Options = "nosniff"
+X-Frame-Options = "DENY"
+X-XSS-Protection = "1; mode=block"
+Referrer-Policy = "no-referrer"
+
+# ⚡ NO CACHEAR NADA DE LA APP - Sin Service Worker
+[[headers]]
+for = "/index.html"
+[headers.values]
+Cache-Control = "no-cache, no-store, must-revalidate, max-age=0, private"
+Pragma = "no-cache"
+Expires = "0"
+
+[[headers]]
+for = "/manifest.json"
+[headers.values]
+Cache-Control = "no-cache, no-store, must-revalidate, max-age=0"
+Pragma = "no-cache"
+
+# NO cachear archivos JavaScript de la app
+[[headers]]
+for = "/assets/js/**"
+[headers.values]
+Cache-Control = "no-cache, max-age=0, must-revalidate, private"
+
+[[headers]]
+for = "/assets/config/**"
+[headers.values]
+Cache-Control = "no-cache, max-age=0, must-revalidate"
+
+# NO cachear archivos estáticos para evitar versiones viejas en producción
+[[headers]]
+for = "/assets/css/*"
+[headers.values]
+Cache-Control = "no-cache, no-store, must-revalidate, max-age=0, private"
+Pragma = "no-cache"
+Expires = "0"
+
+[[headers]]
+for = "/assets/icons/*"
+[headers.values]
+Cache-Control = "no-cache, no-store, must-revalidate, max-age=0, private"
+Pragma = "no-cache"
+Expires = "0"

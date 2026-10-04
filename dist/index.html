@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Brasil Açaí </title>
+
+    <!-- PWA Meta Tags -->
+    <meta name="application-name" content="Brasil Açaí SGP">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="SGP Açaí">
+    <meta name="description" content="Sistema de Gestión Centralizado para Brasil Açaí">
+    <meta name="theme-color" content="#7c3aed">
+
+    <!-- Dependencies -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+    
+    <!-- PDF Libraries - CARGAR PRIMERO (críticos para exportación) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    
+    <!-- ✅ Asegurar que jsPDF esté disponible globalmente -->
+    <script>
+        // Hacer jsPDF disponible en window inmediatamente
+        if (typeof jspdf !== 'undefined') {
+            window.jsPDFGlobal = jspdf.jsPDF;
+            console.log('✅ jsPDF cargado en window.jsPDFGlobal');
+        }
+    </script>
+
+
+    <!-- App Icons & Manifest -->
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" href="assets/logo.png">
+    <link rel="apple-touch-icon" href="assets/logo.png">
+
+    <!-- External CSS -->
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+
+<body class="bg-light">
+
+    <!-- Loading Overlay (Global) -->
+    <div id="loading-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,1); z-index: 9999; align-items: center; justify-content: center;">
+        <div class="spinner-border text-white" role="status">
+            <span class="visually-hidden">Cargando...</span>
+        </div>
+    </div>
+
+    <!-- Login Auth Section -->
+    <div id="auth-container" class="d-flex align-items-center justify-content-center vh-100" style="background: linear-gradient(135deg, rgba(124, 58, 237, 0.1) 0%, rgba(168, 85, 247, 0.05) 100%), url('assets/enredadera-removebg-preview.png'); background-size: cover; background-position: center; background-repeat: no-repeat; background-attachment: fixed; position: relative;">
+        <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(135deg, rgba(0, 0, 0, 0.35) 0%, rgba(60, 20, 120, 0.25) 100%); z-index: 1;"></div>
+        <div class="card p-4 shadow-lg border-0" style="width: min(95vw, 420px); position: relative; z-index: 10; border-radius: 16px; backdrop-filter: blur(10px); background: rgba(255, 255, 255, 0.98);">
+            <div class="text-center mb-4">
+                <img src="assets/logo-brasil.jpg" alt="Brasil Açaí" style="max-width: 100%; height: auto; margin: 0 auto 20px auto; display: block; max-height: 160px; object-fit: contain; filter: drop-shadow(0 4px 8px rgba(124, 58, 237, 0.2)); transition: all 0.3s ease;">
+                <button id="btn-install-login" class="btn btn-sm fw-bold mt-3" style="display: block; width: 100%; background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%); color: white; border: none; padding: 12px 20px; border-radius: 10px; font-size: 1rem; box-shadow: 0 8px 24px rgba(124, 58, 237, 0.3); transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 12px 32px rgba(124, 58, 237, 0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 24px rgba(124, 58, 237, 0.3)'">
+                    <i class="bi bi-cloud-download me-2" style="font-size: 1.2rem;"></i>Descargar App
+                </button>
+            </div>
+            <div id="login-error" style="display: none; background: #40105852; border: 1px solid #f5c6cb; color: #721c24; padding: 12px; border-radius: 6px; margin-bottom: 15px; font-size: 0.9rem;"></div>
+            <form id="login-form" autocomplete="on">
+                <div class="mb-3">
+                    <label class="form-label small fw-bold">Email</label>
+                    <input type="email" id="login-email" class="form-control" placeholder="admin@brasilacai.com" autocomplete="username" spellcheck="false" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small fw-bold">Contraseña</label>
+                    <div class="password-field">
+                        <input type="password" id="login-password" class="form-control" autocomplete="current-password" spellcheck="false" required>
+                        <button type="button" class="btn-toggle-password" onclick="togglePasswordVisibility('login-password')">
+                            <i class="bi bi-eye-slash"></i>
+                        </button>
+                    </div>
+                </div>
+                <button type="submit" id="btn-entrar" class="btn btn-primary w-100 fw-bold"
+                    style="background: #6d40bb; border:none; color:rgb(255, 255, 255); padding:12px; border-radius:8px;">ACCEDER</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main Application UI -->
+    <div id="app-container" style="display: none;">
+        <div class="container-fluid">
+            <div class="row">
+                <!-- Responsive Top Navbar -->
+                <nav class="navbar navbar-expand-lg navbar-light shadow-sm w-100" style="background: linear-gradient(90deg, #ffffff 0%, #7c3aed 100%);">
+                    <div class="container-fluid">
+                <a class="navbar-brand fw-bold text-dark d-flex align-items-center gap-2" href="#" style="display: flex; align-items: center; gap: 15px;">
+                            <img src="assets/icons/logo-brasil-removebg-preview.png" alt="Brasil Açaí" style="height: 55px; width: auto; object-fit: contain; filter: drop-shadow(0 2px 4px rgba(124, 58, 237, 0.15)); transition: all 0.3s ease;">
+                        </a>
+                        <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#navAppContent">
+                            <span class="navbar-toggler-icon"></span>
+                        </button>
+                        <div class="collapse navbar-collapse" id="navAppContent">
+                            <ul class="navbar-nav me-auto mb-2 mb-lg-0 mt-3 mt-lg-0 gap-2">
+                                <li class="nav-item">
+                                    <a id="nav-inv" class="nav-link active px-3 text-dark" href="#"
+                                        style="cursor: pointer; border-radius:8px;"><i
+                                            class="bi bi-shop me-2"></i> Stock de Tienda</a>
+                                </li>
+                                <li class="nav-item" id="link-stock-faltante-wrap" style="display: none;">
+                                    <a id="link-stock-faltante" class="nav-link px-3" href="#"
+                                        style="cursor: pointer; border-radius:8px;"><i
+                                            class="bi bi-exclamation-circle me-2"></i> Lista de Compra</a>
+                                </li>
+                                <li class="nav-item" id="link-reportes-wrap" style="display: none;">
+                                    <a id="link-reportes" class="nav-link role-admin px-3" href="#"
+                                        style="cursor: pointer; border-radius:8px;"><i
+                                            class="bi bi-currency-dollar me-2"></i> Financiero</a>
+                                </li>
+                                <li class="nav-item" id="link-finanzas-wrap" style="display: none;">
+                                    <a id="link-finanzas" class="nav-link px-3" href="#"
+                                        style="cursor: pointer; border-radius:8px;"><i
+                                            class="bi bi-graph-up-arrow me-2"></i> Gastos</a>
+                                </li>
+                                <li class="nav-item" id="link-proveedores-wrap" style="display: none;">
+                                    <a id="link-proveedores" class="nav-link px-3" href="#"
+                                        style="cursor: pointer; border-radius:8px;"><i
+                                            class="bi bi-building me-2"></i> Proveedores</a>
+                                </li>
+                                <li class="nav-item" id="link-empleados-wrap" style="display: none;">
+                                    <a id="link-empleados" class="nav-link px-3" href="#"
+                                        style="cursor: pointer; border-radius:8px;"><i
+                                            class="bi bi-people-fill me-2"></i> Empleados</a>
+                                </li>
+                            </ul>
+                            <div class="d-flex gap-2 flex-wrap">
+                                <button id="btn-salir" class="btn btn-outline-dark btn-sm fw-bold">Cerrar Sesión</button>
+                            </div>
+                        </div>
+                    </div>
+                </nav>
+
+                <main class="col-12 p-3 p-md-4 mt-2">
+                    <!-- Top Bar Header -->
+                    <div
+                        class="d-flex flex-wrap justify-content-between align-items-center bg-white p-3 rounded shadow-sm mb-4 border-start border-4 border-primary gap-3">
+                        <div>
+                            <h6 id="userTag" class="m-0 fw-bold text-dark d-inline"></h6>
+                            <span id="roleBadge" class="badge badge-role ms-2 text-uppercase shadow-sm"></span>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-geo-alt-fill text-danger me-2"></i>
+                            <select id="tiendaSelect"
+                                class="form-select w-auto fw-bold border-primary shadow-sm"></select>
+                        </div>
+                    </div>
+
+                    <!-- Inventory Section (Stock de Tienda) -->
+                    <section id="sec-inventario">
+
+                        <!-- PANEL: GENERADOR DE PEDIDOS AUTOMÁTICOS -->
+                        <div class="card p-4 shadow-sm border-0 mb-4 bg-light">
+                            <h5 class="fw-bold text-purple m-0 mb-3"><i class="bi bi-person-badge me-2"></i>Generador de Pedidos por Lista de Compra</h5>
+                            <div class="generator-warning-banner">
+                                IMPORTANTE: introduce los valores solo con numeros enteros. No uses decimales.
+                            </div>
+                            <div class="generator-help-banner mb-3">
+                                <small><i class="bi bi-info-circle me-2"></i>Completa tu nombre y haz click en "Generar Pedido" para generar pedidos automáticos de los productos de la lista de compra en la tienda seleccionada. Tu nombre se actualizará como responsable en la Lista de Compra.</small>
+                            </div>
+                            <div class="row g-3 align-items-end">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold mb-2"><i class="bi bi-person me-1"></i>Tu Nombre <span class="text-danger">*</span></label>
+                                    <input type="text" id="nombreGeneradorPedido" class="form-control border-primary shadow-sm" placeholder="Ej: Juan Pérez" autocomplete="off" spellcheck="false" required>
+                                    <small class="text-muted d-block mt-1">Se mostrará en la Lista de Compra como responsable de los pedidos generados</small>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="d-flex gap-2 align-items-center">
+                                        <div class="flex-grow-1">
+                                            <small class="text-muted d-block mb-2">Tienda seleccionada:</small>
+                                            <span id="labelTiendaActual" class="badge bg-primary fs-6 p-2">
+                                                <i class="bi bi-shop me-1"></i><span id="nombreTiendaActual">Todas las tiendas</span>
+                                            </span>
+                                        </div>
+                                        <button id="btn-actualizar-stock" class="btn btn-primary fw-bold">
+                                            <i class="bi bi-arrow-clockwise me-1"></i>Generar Pedido
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- FILTRO DE PROVEEDORES - SUPERIOR -->
+                        <div class="card p-4 shadow-sm border-0 mb-4 bg-white">
+                            <div class="d-flex align-items-center gap-3">
+                                <i class="bi bi-funnel text-primary fs-5"></i>
+                                <div>
+                                    <label class="form-label fw-bold mb-0"><i class="bi bi-box-seam me-2"></i>Filtrar por Proveedor</label>
+                                </div>
+                                <div>
+                                    <select id="provSelect" class="form-select form-select-sm shadow-sm"
+                                        style="width: min(100%, 250px);">
+                                        <option value="todos">Todos los proveedores</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- BUSCADOR DE PRODUCTOS -->
+                        <div class="card shadow-sm border-0 mb-4" style="border-left: 5px solid #3b82f6 !important; background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);">
+                            <div class="card-body py-3 px-4">
+                                <label class="form-label fw-bold mb-2" style="color: #1e40af;">Buscar Producto</label>
+                                <div class="input-group shadow-sm">
+                                    <span class="input-group-text" style="background: #3b82f6; border-color: #3b82f6; color: white;"><i class="bi bi-search"></i></span>
+                                    <input type="text" id="buscadorInventario" class="form-control" placeholder="Buscar por nombre de producto..." autocomplete="off" spellcheck="false" style="border-color: #3b82f6; border-left: none;">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- TABLA 1: INVENTARIO GENERAL -->
+                        <div class="card p-4 shadow-sm border-0 mb-4">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5 class="fw-bold text-purple m-0">Gestión de Inventario</h5>
+                                <div class="gap-2 d-flex">
+                                    <button id="btn-add-product" class="btn btn-sm btn-primary fw-bold" title="Agregar nuevo producto">
+                                        <i class="bi bi-plus-circle me-1"></i>Nuevo Producto
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="table-responsive sticky-table-shell sticky-inventory-shell">
+                                <table class="table align-middle table-hover sticky-table sticky-inventory-table">
+                                    <thead class="table-light">
+                                        <tr id="cabecera-inventario"></tr>
+                                    </thead>
+                                    <tbody id="listaInventario"></tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                    </section>
+
+                    <!-- Lista de Compra Section -->
+                    <section id="sec-stock-faltante" style="display:none;">
+                        <!-- Título Dinámico -->
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h4 id="titulo-stock-faltante" class="m-0"><i class="bi bi-clock-history me-2"></i>Productos de Lista de Compra</h4>
+                            <button id="btn-export-stock-pdf" class="btn btn-sm fw-bold" style="background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%); color: white; border: 2px solid #6d28d9; border-radius: 8px; padding: 8px 16px; transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(124, 58, 237, 0.3);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(124, 58, 237, 0.5)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(124, 58, 237, 0.3)'">
+                                <i class="bi bi-file-earmark-pdf me-1"></i>Exportar PDF
+                            </button>
+                        </div>
+                        
+                        <!-- Filtros y Tabla de Pedidos -->
+                        <div class="card p-4 shadow-sm border-0">
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold"><i class="bi bi-calendar me-1"></i>Filtrar por Fecha</label>
+                                    <input type="date" id="fechaFiltroFaltante" class="form-control">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold"><i class="bi bi-building me-1"></i>Filtrar por Proveedor</label>
+                                    <select id="proveedorFiltroFaltante" class="form-select">
+                                        <option value="todos">Todos los proveedores</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold"><i class="bi bi-search me-1"></i>Buscar Producto</label>
+                                    <input type="text" id="buscadorFaltante" class="form-control" placeholder="Buscar por producto o proveedor..." autocomplete="off" spellcheck="false">
+                                </div>
+                            </div>
+
+                            <div class="table-responsive sticky-table-shell sticky-orders-shell">
+                                <table class="table table-hover align-middle sticky-table sticky-orders-table">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th style="width: 10%;"><i class="bi bi-calendar me-1"></i>Fecha</th>
+                                            <th style="width: 10%;"><i class="bi bi-shop me-1"></i>Tienda</th>
+                                            <th style="width: 12%;"><i class="bi bi-building me-1"></i>Proveedor</th>
+                                            <th style="width: 15%;"><i class="bi bi-box-seam me-1"></i>Producto</th>
+                                            <th style="width: 12%;" class="text-center">Cantidad Faltante</th>
+                                            <th style="width: 12%;" class="text-end"><i class="bi bi-currency-dollar me-1"></i>Coste</th>
+                                            <th style="width: 15%;"><i class="bi bi-person me-1"></i>Responsable</th>
+                                            <th style="width: 14%;"><i class="bi bi-toggle2-on me-1"></i>Estado</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tbodyPedidosFaltante">
+                                        <tr><td colspan="8" class="text-center text-muted py-4">Cargando pedidos...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Reports/Checkout Section (Compras) -->
+                    <section id="sec-reportes" style="display:none; background: linear-gradient(180deg, #f5f3ff 0%, #faf9ff 100%); padding: 0;">
+                        <!-- Header Principal con Inversión Total -->
+                        <!-- Financial Summary Card (Only Visible in Financiero Mode) -->
+                        <div class="row mb-4" id="panel-resumen-financiero" style="display: none;"></div>
+
+                        <div class="card border-0 mb-4" style="background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%); box-shadow: 0 8px 32px rgba(6, 182, 212, 0.25); border-radius: 12px; overflow: hidden; margin: 0;">
+                            <div class="card-body p-4">
+                                <div class="row g-3 align-items-center">
+                                    <div class="col-lg-6">
+                                        <div>
+                                            <p class="mb-2" style="font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: rgba(255,255,255,0.8);"><i class="bi bi-graph-up me-2"></i>Inversión Total Estimada</p>
+                                            <h1 class="fw-bold m-0" style="color: white; font-size: 2.5rem; text-shadow: 0 2px 4px rgba(0,0,0,0.1);" id="txt-total-global">€0.00</h1>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6 text-lg-end">
+                                        <p style="font-size: 0.8rem; color: rgba(255,255,255,0.7);"><i class="bi bi-calendar3 me-2"></i>Registro de Pedidos Realizados</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card border-0" style="box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08); border-radius: 12px; background: linear-gradient(135deg, #ffffff 0%, #f8f7ff 100%);">
+                            <div class="card-body p-4">
+                                <div class="d-flex justify-content-between align-items-center align-items-md-end gap-3 mb-4 flex-wrap">
+                                    <h5 class="fw-bold m-0" id="titulo-reporte" style="color: #06b6d4; font-size: 1.1rem; letter-spacing: 0.5px;"><i class="bi bi-journal-text me-2"></i>Registro de Pedidos</h5>
+                                    <div class="d-flex align-items-center gap-3 flex-wrap">
+                                        <div class="d-flex align-items-center">
+                                            <span class="small fw-bold me-2" style="color: #6b7280; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.5px;">Fecha:</span>
+                                            <input type="date" id="fechaReporteSelect" class="form-control form-control-sm" style="width: min(100%, 180px); border-radius: 8px; border: 1px solid rgba(6, 182, 212, 0.2); transition: all 0.3s ease;">
+                                        </div>
+                                        <div class="d-flex align-items-center">
+                                            <span class="small fw-bold me-2" style="color: #6b7280; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.5px;">Proveedor:</span>
+                                            <select id="provReporteSelect" class="form-select form-select-sm" style="width: min(100%, 200px); border-radius: 8px; border: 1px solid rgba(6, 182, 212, 0.2); transition: all 0.3s ease;">
+                                                <option value="todos">📦 Todos los proveedores</option>
+                                            </select>
+                                        </div>
+                                        <button id="btn-export-reportes-pdf" class="btn btn-sm btn-light fw-bold" style="border-radius: 8px; border: 1px solid rgba(6, 182, 212, 0.3); background-color: rgba(6, 182, 212, 0.1); color: #06b6d4; transition: all 0.3s ease;" onmouseover="this.style.backgroundColor='rgba(6, 182, 212, 0.2)'; this.style.transform='scale(1.05)'" onmouseout="this.style.backgroundColor='rgba(6, 182, 212, 0.1)'; this.style.transform='scale(1)'">
+                                            <i class="bi bi-file-earmark-pdf me-1"></i>Exportar PDF
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="table-responsive" style="border-radius: 10px; max-height: 65vh; overflow-y: auto; overflow-x: hidden;">
+                                    <table class="table table-sm align-middle" style="margin-bottom: 0;">
+                                        <thead style="background: linear-gradient(135deg, rgba(6, 182, 212, 0.1) 0%, rgba(6, 182, 212, 0.05) 100%); border-bottom: 2px solid rgba(6, 182, 212, 0.2);">
+                                        <tr>
+                                            <th>Fecha/Hora</th>
+                                            <th>Sede</th>
+                                            <th>Proveedor</th>
+                                            <th>Producto</th>
+                                            <th class="text-center">Stock Registrado</th>
+                                            <th class="text-center">A Pedir</th>
+                                            <th class="text-end col-coste">Coste Est.</th>
+                                            <th class="text-center"><i class="bi bi-list-check"></i> Estado / Recepción</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="listaReporte"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Gastos/Finanzas Section (Solo Admin) -->
+                    <section id="sec-gastos" style="display:none; min-height: calc(100vh - 200px);">
+                        <!-- Header Principal con KPIs -->
+                        <div class="card border-0 mb-3" style="background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%); box-shadow: 0 8px 32px rgba(124, 58, 237, 0.25); border-radius: 12px; overflow: hidden;">
+                            <div class="card-body p-2">
+                                <div class="row g-3 align-items-center">
+                                    <div class="col-lg-6">
+                                        <div>
+                                            <p class="mb-2" style="font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: rgba(255,255,255,0.8);"><i class="bi bi-wallet2 me-2"></i>Total de Gastos</p>
+                                            <h1 class="fw-bold m-0" style="color: white; font-size: 2.5rem; text-shadow: 0 2px 4px rgba(0,0,0,0.1);" id="finance-gran-total">€0.00</h1>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6">
+                                        <div class="d-flex gap-2 justify-content-lg-end flex-wrap">
+                                            <select id="filtro-vista-gastos" class="form-select form-select-sm" style="width: min(100%, 220px); background-color: rgba(255,255,255,0.95); border: 2px solid rgba(255,255,255,0.3); border-radius: 8px; font-weight: 500; color: #7c3aed;">
+                                                <option value="total">📊 Vista General</option>
+                                                <option value="manual">💰 Solo Gastos Manuales</option>
+                                                <option value="pedidos">📦 Solo Insumos</option>
+                                            </select>
+                                            <button id="btn-export-gastos-pdf" class="btn btn-sm fw-bold" style="background-color: rgba(255,255,255,0.2); color: white; border: 2px solid rgba(255,255,255,0.6); border-radius: 8px; transition: all 0.3s ease;" onmouseover="this.style.backgroundColor='rgba(255,255,255,0.35)'; this.style.borderColor='rgba(255,255,255,0.8)'; this.style.transform='scale(1.05)'" onmouseout="this.style.backgroundColor='rgba(255,255,255,0.2)'; this.style.borderColor='rgba(255,255,255,0.6)'; this.style.transform='scale(1)'">
+                                                <i class="bi bi-file-earmark-pdf me-1"></i>Exportar PDF
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Contenido Principal: Dashboard de Flujo, Gráfico por Tienda y Tabla -->
+                        <div class="row g-4 mb-4">
+                            <!-- Dashboard de Flujo de Gastos (Lado izquierdo) -->
+                            <div class="col-md-12 col-lg-12">
+                                <div class="card border-0 h-100" style="box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08); border-radius: 12px; background: linear-gradient(135deg, #ffffff 0%, #f8f7ff 100%); transition: transform 0.3s ease, box-shadow 0.3s ease;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 15px 50px rgba(124, 58, 237, 0.15)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 10px 40px rgba(0, 0, 0, 0.08)';">
+                                    <div class="card-body p-4 d-flex flex-column" style="height: 100%;">
+                                        <h6 class="fw-bold mb-4" style="color: #7c3aed; font-size: 1.05rem; letter-spacing: 0.5px;"><i class="bi bi-diagram-3 me-2"></i>Flujo de Gastos por Categoría</h6>
+                                        <div id="expenseFlow" style="display: flex; flex-direction: column; gap: 14px; flex: 1; overflow-y: auto; padding-right: 8px;">
+                                            <!-- Se llenará dinámicamente -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Gráfico Gastos por Tienda (Lado derecho) -->
+                            <div class="col-md-12 col-lg-12">
+                                <div class="card border-0 h-100" style="box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08); border-radius: 12px; background: linear-gradient(135deg, #ffffff 0%, #f8f7ff 100%); transition: transform 0.3s ease, box-shadow 0.3s ease;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 15px 50px rgba(124, 58, 237, 0.15)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 10px 40px rgba(0, 0, 0, 0.08)';">
+                                    <div class="card-body p-4">
+                                        <h6 class="fw-bold mb-4" style="color: #7c3aed; font-size: 1.05rem; letter-spacing: 0.5px;"><i class="bi bi-pie-chart-fill me-2"></i>Análisis por Tienda</h6>
+                                        <div style="position: relative; height: 270px;">
+                                            <canvas id="chartGastosPorTienda"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Ingreso de Gastos Manuales por Tienda -->
+                        <div class="card border-0 mb-4" style="box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08); border-radius: 12px; background: linear-gradient(135deg, #ffffff 0%, #f8f7ff 100%); transition: transform 0.3s ease, box-shadow 0.3s ease;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 15px 50px rgba(124, 58, 237, 0.15)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 10px 40px rgba(0, 0, 0, 0.08)';">
+                            <div class="card-body p-4">
+                                <h6 class="fw-bold mb-4" style="color: #7c3aed; font-size: 1.05rem; letter-spacing: 0.5px;"><i class="bi bi-plus-circle me-2"></i>Agregar Gasto Manual por Tienda</h6>
+                                <form id="formAgregarGasto" class="row g-3">
+                                    <div class="col-md-6 col-lg-3">
+                                        <label for="gastoTienda" class="form-label fw-600" style="color: #7c3aed; font-size: 0.9rem;">Tienda</label>
+                                        <select id="gastoTienda" class="form-select form-select-sm" required style="border: 2px solid #7c3aed; border-radius: 8px; padding: 8px 12px;">
+                                            <option value="">-- Seleccionar Tienda --</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6 col-lg-3">
+                                        <label for="gastoConcepto" class="form-label fw-600" style="color: #7c3aed; font-size: 0.9rem;">Concepto</label>
+                                        <input type="text" id="gastoConcepto" class="form-control form-control-sm" placeholder="Ej: Materiales, Servicios" required style="border: 2px solid #7c3aed; border-radius: 8px; padding: 8px 12px;">
+                                    </div>
+                                    <div class="col-md-6 col-lg-2">
+                                        <label for="gastoMonto" class="form-label fw-600" style="color: #7c3aed; font-size: 0.9rem;">Monto (€)</label>
+                                        <input type="number" id="gastoMonto" class="form-control form-control-sm" placeholder="0.00" min="0" step="0.01" required style="border: 2px solid #7c3aed; border-radius: 8px; padding: 8px 12px;">
+                                    </div>
+                                    <div class="col-md-6 col-lg-2">
+                                        <label for="gastoTipo" class="form-label fw-600" style="color: #7c3aed; font-size: 0.9rem;">Tipo</label>
+                                        <select id="gastoTipo" class="form-select form-select-sm" required style="border: 2px solid #7c3aed; border-radius: 8px; padding: 8px 12px;">
+                                            <option value="Insumos">📦 Insumos</option>
+                                            <option value="Nómina">💰 Nómina</option>
+                                            <option value="Alquiler">🏠 Alquiler</option>
+                                            <option value="Local">🏪 Local</option>
+                                            <option value="Otros">📝 Otros</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-12 col-lg-2 d-flex align-items-end">
+                                        <button type="submit" class="btn btn-sm fw-bold w-100" style="background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%); color: white; border: none; border-radius: 8px; padding: 8px 16px; transition: all 0.3s ease;">
+                                            <i class="bi bi-check-circle me-1"></i>Agregar
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+                    </section>
+
+                    <!-- Provider Management Section (Solo Admin/Auxiliar Admin) -->
+                    <section id="sec-proveedores" style="display:none;">
+                        <div class="card p-4 shadow-sm border-0 mb-4">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5 class="fw-bold text-purple m-0"><i class="bi bi-building me-2"></i>Gestión de Proveedores</h5>
+                                <button id="btn-nuevo-proveedor" class="btn btn-success fw-bold">
+                                    <i class="bi bi-shop-window me-2"></i>Crear Nuevo Proveedor
+                                </button>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th><i class="bi bi-building me-2"></i>Nombre</th>
+                                            <th><i class="bi bi-card-text me-2"></i>CIF</th>
+                                            <th><i class="bi bi-geo-alt me-2"></i>Dirección</th>
+                                            <th><i class="bi bi-envelope me-2"></i>Correos</th>
+                                            <th><i class="bi bi-shop me-2"></i>Tiendas</th>
+                                            <th><i class="bi bi-toggle2-on me-2"></i>Estado</th>
+                                            <th>Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tbody-proveedores">
+                                        <tr><td colspan="7" class="text-center text-muted py-4">Cargando proveedores...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Modal: Crear Nuevo Proveedor -->
+                    <div id="modal-nuevo-proveedor" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,1); z-index: 1000; align-items: center; justify-content: center;">
+                        <div class="card p-4 shadow-lg border-0" style="max-width: 500px; width: min(95vw, 500px);">
+                            <div class="mb-3">
+                                <h6 class="fw-bold text-purple m-0"><i class="bi bi-plus-circle me-2"></i>Crear Nuevo Proveedor</h6>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold">Nombre del Proveedor</label>
+                                <input type="text" id="input-nuevo-proveedor" class="form-control" placeholder="Ej: Proveedor XYZ">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold">CIF de empresa <span class="text-muted">(opcional)</span></label>
+                                <input type="text" id="input-nuevo-proveedor-cif" class="form-control" placeholder="Ej: B12345678">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold">Dirección <span class="text-muted">(opcional)</span></label>
+                                <input type="text" id="input-nuevo-proveedor-direccion" class="form-control" placeholder="Ej: Calle, número, ciudad">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold">Número de teléfono <span class="text-muted">(opcional)</span></label>
+                                <input type="text" id="input-nuevo-proveedor-telefono" class="form-control" placeholder="Ej: 911 34 13 23">
+                            </div>
+                            <div class="d-flex gap-2 justify-content-end">
+                                <button id="btn-cancel-proveedor" class="btn btn-secondary fw-bold">Cancelar</button>
+                                <button id="btn-crear-proveedor" class="btn btn-primary fw-bold">
+                                    <i class="bi bi-check-circle me-2"></i>Crear Proveedor
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Employee Management Section (Solo Admin/Franquiciado) -->
+                    <section id="sec-empleados" style="display:none;">
+                        <div class="card border-0 mb-4" style="box-shadow: 0 10px 40px rgba(124, 58, 237, 0.08); border-radius: 12px; background: #fff;">
+                            <div style="background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%); padding: 20px; border-radius: 12px 12px 0 0; box-shadow: 0 10px 40px rgba(124, 58, 237, 0.25);">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h5 class="fw-bold m-0" style="color: white; letter-spacing: 0.5px; font-size: 1.35rem;"><i class="bi bi-people-fill me-2"></i>Gestión de Empleados</h5>
+                                    <button id="btn-add-employee" class="btn fw-bold" style="background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%); color: white; border: none; padding: 10px 18px; border-radius: 8px; transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 15px 40px rgba(6, 182, 212, 0.3)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';">
+                                        <i class="bi bi-person-plus-fill me-2"></i>Crear Nuevo Empleado
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="p-4">
+                                <div id="lista-empleados-gestion" class="list-group" style="border: none;"></div>
+                            </div>
+                        </div>
+
+                        <!-- Gestión de Tiendas (Solo Admin) -->
+                        <div id="panel-tiendas" class="card p-4 shadow-sm border-0 mb-4 d-none">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5 class="fw-bold text-info m-0"><i class="bi bi-shop-window me-2"></i>Gestión de Tiendas</h5>
+                                <button id="btn-add-tienda" class="btn btn-info fw-bold">
+                                    <i class="bi bi-plus-circle-fill me-2"></i>Crear Nueva Tienda
+                                </button>
+                            </div>
+                            <div id="lista-tiendas" class="tiendas-container"></div>
+                        </div>
+                    </section>
+                </main>
+            </div>
+        </div>
+
+        <!-- Modal: Create New Employee -->
+        <div id="modal-employee" class="modal-overlay" style="display: none; position: fixed;  top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,1); z-index: 1000; align-items: center; justify-content: center;">
+            <div class="card shadow-lg border-0" style="width: min(95vw, 500px); border-radius: 12px; overflow: hidden;">
+                <div style="background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%); color: white; font-weight: bold; padding: 18px 20px; font-size: 1.1rem; box-shadow: 0 5px 20px rgba(124, 58, 237, 1); letter-spacing: 0.5px; opacity: 1 !important;">
+                    <i class="bi bi-person-plus-fill me-2"></i>Crear Nuevo Empleado
+                </div>
+                <div class="card-body p-4" style="background: #fafafa;">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold" style="color: #7c3aed; letter-spacing: 0.5px;">Email <span class="text-danger">*</span></label>
+                        <input type="email" id="emp-correo" class="form-control" placeholder="empleado@example.com" required style="border: 2px solid #e5e7eb; border-radius: 8px; padding: 10px 12px; transition: all 0.3s ease;" onmouseover="this.style.borderColor='#7c3aed';" onmouseout="this.style.borderColor='#e5e7eb';">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold" style="color: #7c3aed; letter-spacing: 0.5px;">Nombre Completo <span class="text-danger">*</span></label>
+                        <input type="text" id="emp-nombre" class="form-control" placeholder="Juan Pérez" required style="border: 2px solid #e5e7eb; border-radius: 8px; padding: 10px 12px; transition: all 0.3s ease;" onmouseover="this.style.borderColor='#7c3aed';" onmouseout="this.style.borderColor='#e5e7eb';">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold" style="color: #7c3aed; letter-spacing: 0.5px;">Contraseña <span class="text-danger">*</span></label>
+                        <div class="password-field">
+                            <input type="password" id="emp-password" class="form-control" placeholder="Mínimo 6 caracteres" required style="border: 2px solid #e5e7eb; border-radius: 8px; padding: 10px 12px; transition: all 0.3s ease;" onmouseover="this.style.borderColor='#7c3aed';" onmouseout="this.style.borderColor='#e5e7eb';">
+                            <button type="button" class="btn-toggle-password" onclick="togglePasswordVisibility('emp-password')">
+                                <i class="bi bi-eye-slash"></i>
+                            </button>
+                        </div>
+                        <small class="text-muted">Mínimo 6 caracteres. El usuario la usará para iniciar sesión</small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold" style="color: #7c3aed; letter-spacing: 0.5px;">Rol <span class="text-danger">*</span></label>
+                        <select id="emp-rol" class="form-select" required onchange="window.employeeController.actualizarVerTienda()" style="border: 2px solid #e5e7eb; border-radius: 8px; padding: 10px 12px; transition: all 0.3s ease;" onmouseover="this.style.borderColor='#7c3aed';" onmouseout="this.style.borderColor='#e5e7eb';">
+                            <option value="empleado">Empleado</option>
+                            <option value="franquiciado">Franquiciado</option>
+                            <option value="auxiliar_administrativo">Auxiliar Administrativo</option>
+                            <option value="administrador">Administrador</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold" style="color: #7c3aed; letter-spacing: 0.5px;">Tienda Asignada <span class="text-danger">*</span></label>
+                        <select id="emp-tienda" class="form-select" required style="border: 2px solid #e5e7eb; border-radius: 8px; padding: 10px 12px; transition: all 0.3s ease;" onmouseover="this.style.borderColor='#7c3aed';" onmouseout="this.style.borderColor='#e5e7eb';">
+                            <option value="">-- Seleccionar tienda --</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="background: #f3f4f6; padding: 16px 20px; display: flex; gap: 12px; justify-content: flex-end; border-top: 1px solid #e5e7eb;">
+                    <button id="btn-cancel-employee" class="btn btn-outline-secondary" style="border: 2px solid #9ca3af; color: #6b7280; padding: 10px 18px; border-radius: 8px; font-weight: 600; transition: all 0.3s ease;" onmouseover="this.style.backgroundColor='#f9fafb'; this.style.borderColor='#6b7280';" onmouseout="this.style.backgroundColor='transparent'; this.style.borderColor='#9ca3af';">Cancelar</button>
+                    <button id="btn-confirm-employee" class="btn fw-bold" style="background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%); color: white; border: none; padding: 10px 18px; border-radius: 8px; transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 15px 40px rgba(124, 58, 237, 0.3)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';">
+                        <i class="bi bi-check-circle me-2"></i>Crear Empleado
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal: Create New Store -->
+        <div id="modal-tienda" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,1); z-index: 1000; align-items: center; justify-content: center;">
+            <div class="card shadow-lg border-0" style="width: min(95vw, 400px);">
+                <div class="card-header bg-info text-white fw-bold py-3">
+                    <i class="bi bi-shop-window me-2"></i>Crear Nueva Tienda
+                </div>
+                <div class="card-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Nombre Tienda <span class="text-danger">*</span></label>
+                        <input type="text" id="tienda-nombre" class="form-control" placeholder="Ej: Tienda Centro" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Dirección <span class="text-muted" style="font-size: 0.75rem;">(Opcional)</span></label>
+                        <input type="text" id="tienda-direccion" class="form-control" placeholder="Ej: Calle Principal 123, Apt 4" >
+                    </div>
+                </div>
+                <div class="card-footer bg-light py-3 d-flex gap-2 justify-content-end">
+                    <button id="btn-cancel-tienda" class="btn btn-outline-secondary">Cancelar</button>
+                    <button id="btn-confirm-tienda" class="btn btn-info fw-bold">
+                        <i class="bi bi-check-circle me-2"></i>Crear Tienda
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal: Create New Product -->
+        <div id="modal-product" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,1); z-index: 1000; align-items: center; justify-content: center;">
+            <div class="card shadow-lg border-0" style="width: min(95vw, 500px);">
+                <div class="card-header bg-primary text-white fw-bold py-3">
+                    <i class="bi bi-box-seam me-2"></i>Crear Nuevo Producto
+                </div>
+                <div class="card-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Nombre Producto <span class="text-danger">*</span></label>
+                        <input type="text" id="prod-nombre" class="form-control" placeholder="Ej: Acaí Premium" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Proveedor <span class="text-danger">*</span></label>
+                        <input type="text" id="prod-proveedor" class="form-control" list="proveedores-list" placeholder="Seleccionar o escribir proveedor" required>
+                        <datalist id="proveedores-list"></datalist>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Precio €<span class="text-danger">*</span></label>
+                        <input type="number" id="prod-precio" class="form-control" placeholder="0.00" step="0.01" min="0" required>
+                    </div>
+                </div>
+                <div class="card-footer bg-light py-3 d-flex gap-2 justify-content-end">
+                    <button id="btn-cancel-product" class="btn btn-outline-secondary">Cancelar</button>
+                    <button id="btn-confirm-product" class="btn btn-primary fw-bold">
+                        <i class="bi bi-check-circle me-2"></i>Crear Producto
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Custom MVC Scripts (Loaded globally to bypass CORS on file:// protocol) -->
+        <script src="assets/js/config/supabase.js?v=20260317"></script>
+    <script src="assets/js/utils/verifyDatabaseSchema.js?v=20260317"></script>
+    <script src="assets/js/utils/ui.js?v=20260317"></script>
+    <script src="assets/js/models/authModel.js?v=20260317"></script>
+    <script src="assets/js/models/productModel.js?v=20260317"></script>
+    <script src="assets/js/models/orderModel.js?v=20260507"></script>
+    <script src="assets/js/models/expenseModel.js?v=20260317"></script>
+    <script src="assets/js/models/providerModel.js?v=20260327"></script>
+    <script src="assets/js/controllers/authController.js?v=20260317"></script>
+    <script src="assets/js/controllers/inventoryController.js?v=20260317"></script>
+    <script src="assets/js/controllers/stockfaltantecontroller.js?v=20260327"></script>
+    <script src="assets/js/controllers/reportController.js?v=20260320"></script>
+    <script src="assets/js/controllers/financeController.js?v=20260320"></script>
+    <script src="assets/js/controllers/employeeController.js?v=20260317"></script>
+    <script src="assets/js/controllers/tiendaController.js?v=20260317"></script>
+    <script src="assets/js/controllers/providerController.js?v=20260327"></script>
+    <script src="assets/js/controllers/pdfExportController.js?v=20260507"></script>
+    <script src="assets/js/utils/pdfGenerator.js?v=20260330"></script>
+    <script src="assets/js/controllers/appController.js?v=20260317"></script>
+    <script src="assets/js/pwa-install.js"></script>
+    <script src="assets/js/update-checker.js"></script>
+    <script src="assets/js/main.js?v=20260401"></script>
+
+    <!-- Cleanup de service worker/caches antiguos -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.getRegistrations()
+                    .then(registrations => Promise.all(registrations.map(reg => reg.unregister())))
+                    .then(() => {
+                        if ('caches' in window) {
+                            return caches.keys().then(cacheNames => Promise.all(cacheNames.map(cacheName => caches.delete(cacheName))));
+                        }
+                    })
+                    .then(() => console.log('🧹 Cache y service workers eliminados'))
+                    .catch(err => console.log('❌ Error eliminando cache/SW:', err));
+            });
+        }
+    </script>
+</body>
+
+</html>
