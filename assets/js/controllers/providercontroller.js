@@ -8,7 +8,14 @@ const providerController = {
     },
 
     _getTiendaSeleccionada() {
-        return document.getElementById('tiendaSelect')?.value || 'todas';
+        const select = document.getElementById('tiendaSelect');
+        const val = select?.value || 'todas';
+        const profile = window.authModel?.getProfile?.() || {};
+        const rol = (profile.rol || '').toLowerCase().trim();
+        if (rol === 'franquiciado' && profile.tienda_asignada && profile.tienda_asignada !== 'Todas') {
+            return profile.tienda_asignada;
+        }
+        return val;
     },
 
     _renderEmailBadges(emails = []) {
@@ -145,7 +152,7 @@ const providerController = {
         if (proveedores.length === 0) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="5" class="text-center text-muted py-4">
+                    <td colspan="7" class="text-center text-muted py-4">
                         No hay proveedores registrados
                     </td>
                 </tr>
@@ -155,7 +162,7 @@ const providerController = {
 
         tbody.innerHTML = proveedores.map(prov => `
             <tr>
-                <td>${prov.nombre}</td>
+                <td><strong>${prov.nombre}</strong></td>
                 <td>${this._renderSimpleText(prov.cif_empresa)}</td>
                 <td>${this._renderSimpleText(prov.direccion)}</td>
                 <td>${this._renderEmailBadges(prov.emails || [])}</td>
@@ -164,16 +171,18 @@ const providerController = {
                     <span class="badge ${prov.activo ? 'bg-success' : 'bg-danger'}">
                         ${prov.activo ? '✓ Activo' : '✗ Inactivo'}
                     </span>
-                <tr>
-                    <td colspan="7" class="text-center text-muted py-4">
-                    <button class="btn btn-sm btn-info me-2"
-                            onclick="providerController.abrirEditarProveedor(${prov.id}, '${prov.nombre.replace(/'/g, "\\'")}')">
-                        ✏️ Editar
-                    </button>
-                    <button class="btn btn-sm ${prov.activo ? 'btn-warning' : 'btn-success'}"
-                            onclick="providerController.toggleStatus(${prov.id}, ${!prov.activo})">
-                        ${prov.activo ? '❌ Desactivar' : '✓ Activar'}
-                    </button>
+                </td>
+                <td class="text-nowrap">
+                    <div class="d-inline-flex gap-1 flex-wrap">
+                        <button class="btn btn-sm btn-info" style="padding: 3px 8px; font-size: 0.8rem;"
+                                onclick="providerController.abrirEditarProveedor(${prov.id}, '${prov.nombre.replace(/'/g, "\\'")}')">
+                            ✏️ Editar
+                        </button>
+                        <button class="btn btn-sm ${prov.activo ? 'btn-warning' : 'btn-success'}" style="padding: 3px 8px; font-size: 0.8rem;"
+                                onclick="providerController.toggleStatus(${prov.id}, ${!prov.activo})">
+                            ${prov.activo ? '❌ Desactivar' : '✓ Activar'}
+                        </button>
+                    </div>
                 </td>
             </tr>
         `).join('');
@@ -257,6 +266,39 @@ const providerController = {
 
     async toggleStatus(proveedorId, nuevoEstado) {
         try {
+            const tienda = this._getTiendaSeleccionada();
+            const isTodas = !tienda || tienda === 'todas' || tienda.toLowerCase() === 'todas las tiendas';
+
+            if (!isTodas) {
+                const prov = window.providerModel.getProveedores().find(p => String(p.id) === String(proveedorId));
+                if (prov) {
+                    let tiendas = Array.isArray(prov.tiendas_asignadas) ? [...prov.tiendas_asignadas] : [];
+                    if (prov.all_tiendas !== false) {
+                        const todasTiendas = (window.productModel.tiendas || []).map(t => t.nombre_tienda);
+                        tiendas = nuevoEstado ? todasTiendas : todasTiendas.filter(t => t !== tienda);
+                    } else {
+                        if (!nuevoEstado) {
+                            tiendas = tiendas.filter(t => t !== tienda);
+                        } else {
+                            if (!tiendas.includes(tienda)) tiendas.push(tienda);
+                        }
+                    }
+
+                    await window.providerModel.updateProveedorDatos(proveedorId, {
+                        all_tiendas: false,
+                        tiendas_asignadas: tiendas
+                    });
+
+                    window.ui.showNotify(`✅ Proveedor ${nuevoEstado ? 'activado' : 'desactivado'} para la tienda ${tienda}`, 'success');
+                    this.renderTablaProveedores();
+                    if (window.inventoryController) {
+                        await window.productModel.fetchProductos();
+                        window.inventoryController.renderTable();
+                    }
+                    return;
+                }
+            }
+
             await window.providerModel.toggleProveedorStatus(proveedorId, nuevoEstado);
             window.ui.showNotify(
                 `✅ Proveedor ${nuevoEstado ? 'activado' : 'desactivado'} exitosamente`,

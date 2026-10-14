@@ -486,7 +486,7 @@ const pdfGenerator = {
     /**
      * Genera PDF de Stock Faltante
      */
-    async generarReporteStockFaltante(titulo, datos, filtros = {}) {
+    async generarReporteStockFaltante(titulo, datos, filtros = {}, options = {}) {
         try {
             console.log('📄 Generando PDF Stock Faltante...');
 
@@ -627,17 +627,25 @@ const pdfGenerator = {
                 doc.text(`Coste Total: €${totalCoste.toFixed(2)}`, 15, yPosition);
             }
 
-            // 5. Guardar archivo
+            // 5. Guardar archivo y obtener Base64
             const fechaGeneracionStock = new Date().toISOString().split('T')[0];
-            const nombreArchivo = `Stock_Faltante_${fechaGeneracionStock}.pdf`;
+            const nombreArchivo = `${titulo || 'Stock_Faltante'}_${fechaGeneracionStock}.pdf`;
 
-            doc.save(nombreArchivo);
-            console.log(`✅ PDF generado: ${nombreArchivo}`);
-            window.ui.showNotify(`✅ PDF descargado: ${nombreArchivo}`, 'success');
+            if (options.autoSave !== false) {
+                doc.save(nombreArchivo);
+                console.log(`✅ PDF generado y descargado: ${nombreArchivo}`);
+                window.ui.showNotify(`✅ PDF descargado: ${nombreArchivo}`, 'success');
+            } else {
+                console.log(`✅ PDF generado en memoria para envío: ${nombreArchivo}`);
+            }
+
+            const base64Data = doc.output('datauristring').split(',')[1];
+            return { base64: base64Data, filename: nombreArchivo };
 
         } catch (error) {
             console.error('❌ Error generando PDF:', error);
             window.ui.showNotify(`❌ Error: ${error.message}`, 'danger');
+            return null;
         }
     },
 

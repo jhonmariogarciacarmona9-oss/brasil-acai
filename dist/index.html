@@ -27,6 +27,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     
     <!-- ✅ Asegurar que jsPDF esté disponible globalmente -->
     <script>
@@ -67,15 +68,17 @@
                 </button>
             </div>
             <div id="login-error" style="display: none; background: #40105852; border: 1px solid #f5c6cb; color: #721c24; padding: 12px; border-radius: 6px; margin-bottom: 15px; font-size: 0.9rem;"></div>
-            <form id="login-form" autocomplete="on">
+            <form id="login-form" autocomplete="on" data-lpignore="true" novalidate>
+                <input type="text" name="username" autocomplete="username" tabindex="-1" aria-hidden="true" style="position:absolute; left:-9999px; top:auto; width:1px; height:1px; opacity:0;">
+                <input type="password" name="password" autocomplete="current-password" tabindex="-1" aria-hidden="true" style="position:absolute; left:-9999px; top:auto; width:1px; height:1px; opacity:0;">
                 <div class="mb-3">
                     <label class="form-label small fw-bold">Email</label>
-                    <input type="email" id="login-email" class="form-control" placeholder="admin@brasilacai.com" autocomplete="username" spellcheck="false" required>
+                    <input type="email" id="login-email" name="app_login_user" class="form-control" placeholder="admin@brasilacai.com" autocomplete="username" data-lpignore="true" spellcheck="false" required>
                 </div>
                 <div class="mb-3">
                     <label class="form-label small fw-bold">Contraseña</label>
                     <div class="password-field">
-                        <input type="password" id="login-password" class="form-control" autocomplete="current-password" spellcheck="false" required>
+                        <input type="password" id="login-password" name="app_login_pass" class="form-control" autocomplete="current-password" data-lpignore="true" spellcheck="false" required>
                         <button type="button" class="btn-toggle-password" onclick="togglePasswordVisibility('login-password')">
                             <i class="bi bi-eye-slash"></i>
                         </button>
@@ -128,13 +131,19 @@
                                         style="cursor: pointer; border-radius:8px;"><i
                                             class="bi bi-building me-2"></i> Proveedores</a>
                                 </li>
+                                <li class="nav-item" id="link-copias-wrap" style="display: none;">
+                                    <a id="link-copias" class="nav-link px-3" href="#"
+                                        style="cursor: pointer; border-radius:8px;"><i
+                                            class="bi bi-journal-bookmark me-2"></i> Copias de Pedidos</a>
+                                </li>
                                 <li class="nav-item" id="link-empleados-wrap" style="display: none;">
                                     <a id="link-empleados" class="nav-link px-3" href="#"
                                         style="cursor: pointer; border-radius:8px;"><i
                                             class="bi bi-people-fill me-2"></i> Empleados</a>
                                 </li>
                             </ul>
-                            <div class="d-flex gap-2 flex-wrap">
+                            <div class="d-flex gap-2 flex-wrap align-items-center">
+                                <span id="app-version-badge" style="background: rgba(124,58,237,0.13); color: #6d28d9; font-size: 0.65rem; font-weight: 700; letter-spacing: 0.4px; padding: 3px 8px; border-radius: 20px; border: 1px solid rgba(124,58,237,0.2); white-space: nowrap;">v...</span>
                                 <button id="btn-salir" class="btn btn-outline-dark btn-sm fw-bold">Cerrar Sesión</button>
                             </div>
                         </div>
@@ -221,7 +230,10 @@
                         <div class="card p-4 shadow-sm border-0 mb-4">
                             <div class="d-flex justify-content-between align-items-center mb-3">
                                 <h5 class="fw-bold text-purple m-0">Gestión de Inventario</h5>
-                                <div class="gap-2 d-flex">
+                                <div class="gap-2 d-flex flex-wrap align-items-center">
+                                    <button id="btn-modo-ordenar" class="btn btn-sm btn-outline-purple fw-bold" title="Reordenar productos por tienda">
+                                        <i class="bi bi-arrow-down-up me-1"></i>Personalizar Orden
+                                    </button>
                                     <button id="btn-add-product" class="btn btn-sm btn-primary fw-bold" title="Agregar nuevo producto">
                                         <i class="bi bi-plus-circle me-1"></i>Nuevo Producto
                                     </button>
@@ -244,27 +256,47 @@
                         <!-- Título Dinámico -->
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <h4 id="titulo-stock-faltante" class="m-0"><i class="bi bi-clock-history me-2"></i>Productos de Lista de Compra</h4>
-                            <button id="btn-export-stock-pdf" class="btn btn-sm fw-bold" style="background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%); color: white; border: 2px solid #6d28d9; border-radius: 8px; padding: 8px 16px; transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(124, 58, 237, 0.3);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(124, 58, 237, 0.5)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(124, 58, 237, 0.3)'">
-                                <i class="bi bi-file-earmark-pdf me-1"></i>Exportar PDF
-                            </button>
+                            <div class="d-flex gap-2">
+                                <button id="btn-limpiar-seleccion-faltante" class="btn btn-sm fw-bold" style="background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%); color: white; border: 2px solid #0f766e; border-radius: 8px; padding: 8px 16px; transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(20, 184, 166, 0.25);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(20, 184, 166, 0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(20, 184, 166, 0.25)'">
+                                    <i class="bi bi-eraser me-1"></i>Limpiar Selección
+                                </button>
+                                <button id="btn-enviar-proveedores" class="btn btn-sm fw-bold" style="background: linear-gradient(135deg, #1d4ed8 0%, #3b82f6 100%); color: white; border: 2px solid #1e40af; border-radius: 8px; padding: 8px 16px; transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(59, 130, 246, 0.5)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(59, 130, 246, 0.3)'">
+                                    <i class="bi bi-send me-1"></i>Enviar a Proveedores
+                                </button>
+                                <button id="btn-eliminar-lista" class="btn btn-sm fw-bold" style="background: linear-gradient(135deg, #b91c1c 0%, #ef4444 100%); color: white; border: 2px solid #991b1b; border-radius: 8px; padding: 8px 16px; transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(239, 68, 68, 0.35);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(239, 68, 68, 0.5)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(239, 68, 68, 0.35)'">
+                                    <i class="bi bi-trash3 me-1"></i>Eliminar Lista
+                                </button>
+                                <button id="btn-export-stock-excel" class="btn btn-sm fw-bold" style="background: linear-gradient(135deg, #15803d 0%, #22c55e 100%); color: white; border: 2px solid #166534; border-radius: 8px; padding: 8px 16px; transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(34, 197, 94, 0.3);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(34, 197, 94, 0.45)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(34, 197, 94, 0.3)'">
+                                    <i class="bi bi-file-earmark-excel me-1"></i>Exportar Excel
+                                </button>
+                                <button id="btn-export-stock-pdf" class="btn btn-sm fw-bold" style="background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%); color: white; border: 2px solid #6d28d9; border-radius: 8px; padding: 8px 16px; transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(124, 58, 237, 0.3);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(124, 58, 237, 0.5)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(124, 58, 237, 0.3)'">
+                                    <i class="bi bi-file-earmark-pdf me-1"></i>Exportar PDF
+                                </button>
+                            </div>
                         </div>
                         
                         <!-- Filtros y Tabla de Pedidos -->
                         <div class="card p-4 shadow-sm border-0">
                             <div class="row g-3 mb-4">
-                                <div class="col-md-4">
+                                <div class="col-md-3">
                                     <label class="form-label fw-bold"><i class="bi bi-calendar me-1"></i>Filtrar por Fecha</label>
-                                    <input type="date" id="fechaFiltroFaltante" class="form-control">
+                                    <input type="date" id="fechaFiltroFaltante" class="form-control form-control-sm">
                                 </div>
-                                <div class="col-md-4">
+                                <div class="col-md-3">
                                     <label class="form-label fw-bold"><i class="bi bi-building me-1"></i>Filtrar por Proveedor</label>
-                                    <select id="proveedorFiltroFaltante" class="form-select">
+                                    <select id="proveedorFiltroFaltante" class="form-select form-select-sm">
                                         <option value="todos">Todos los proveedores</option>
                                     </select>
                                 </div>
-                                <div class="col-md-4">
+                                <div class="col-md-3">
+                                    <label class="form-label fw-bold"><i class="bi bi-person me-1"></i>Filtrar por Responsable</label>
+                                    <select id="responsableFiltroFaltante" class="form-select form-select-sm">
+                                        <option value="todos">Todos los responsables</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
                                     <label class="form-label fw-bold"><i class="bi bi-search me-1"></i>Buscar Producto</label>
-                                    <input type="text" id="buscadorFaltante" class="form-control" placeholder="Buscar por producto o proveedor..." autocomplete="off" spellcheck="false">
+                                    <input type="text" id="buscadorFaltante" class="form-control form-control-sm" placeholder="Buscar por producto o proveedor..." autocomplete="off" spellcheck="false">
                                 </div>
                             </div>
 
@@ -272,6 +304,7 @@
                                 <table class="table table-hover align-middle sticky-table sticky-orders-table">
                                     <thead class="table-light">
                                         <tr>
+                                            <th style="width: 4%;" class="text-center"><input type="checkbox" id="check-all-faltante" title="Seleccionar todo"></th>
                                             <th style="width: 10%;"><i class="bi bi-calendar me-1"></i>Fecha</th>
                                             <th style="width: 10%;"><i class="bi bi-shop me-1"></i>Tienda</th>
                                             <th style="width: 12%;"><i class="bi bi-building me-1"></i>Proveedor</th>
@@ -283,7 +316,7 @@
                                         </tr>
                                     </thead>
                                     <tbody id="tbodyPedidosFaltante">
-                                        <tr><td colspan="8" class="text-center text-muted py-4">Cargando pedidos...</td></tr>
+                                        <tr><td colspan="9" class="text-center text-muted py-4">Cargando pedidos...</td></tr>
                                     </tbody>
                                 </table>
                             </div>
@@ -327,6 +360,9 @@
                                                 <option value="todos">📦 Todos los proveedores</option>
                                             </select>
                                         </div>
+                                        <button id="btn-export-reportes-excel" class="btn btn-sm btn-light fw-bold" style="border-radius: 8px; border: 1px solid rgba(34, 197, 94, 0.3); background-color: rgba(34, 197, 94, 0.12); color: #15803d; transition: all 0.3s ease;" onmouseover="this.style.backgroundColor='rgba(34, 197, 94, 0.22)'; this.style.transform='scale(1.05)'" onmouseout="this.style.backgroundColor='rgba(34, 197, 94, 0.12)'; this.style.transform='scale(1)'">
+                                            <i class="bi bi-file-earmark-excel me-1"></i>Exportar Excel
+                                        </button>
                                         <button id="btn-export-reportes-pdf" class="btn btn-sm btn-light fw-bold" style="border-radius: 8px; border: 1px solid rgba(6, 182, 212, 0.3); background-color: rgba(6, 182, 212, 0.1); color: #06b6d4; transition: all 0.3s ease;" onmouseover="this.style.backgroundColor='rgba(6, 182, 212, 0.2)'; this.style.transform='scale(1.05)'" onmouseout="this.style.backgroundColor='rgba(6, 182, 212, 0.1)'; this.style.transform='scale(1)'">
                                             <i class="bi bi-file-earmark-pdf me-1"></i>Exportar PDF
                                         </button>
@@ -365,12 +401,26 @@
                                         </div>
                                     </div>
                                     <div class="col-lg-6">
-                                        <div class="d-flex gap-2 justify-content-lg-end flex-wrap">
+                                        <div class="mb-2">
+                                            <span id="finance-period-label" class="badge fw-bold" style="background: rgba(255,255,255,0.18); color: white; border: 1px solid rgba(255,255,255,0.25); letter-spacing: 0.3px;">Mes actual</span>
+                                        </div>
+                                        <div class="d-flex gap-2 justify-content-lg-end flex-wrap align-items-center">
+                                            <div class="d-flex align-items-center gap-2 flex-wrap" style="min-width: min(100%, 290px);">
+                                                <span class="small fw-bold text-white text-uppercase" style="letter-spacing: 0.5px; white-space: nowrap;">Período:</span>
+                                                <select id="filtro-periodo-gastos" class="form-select form-select-sm" style="width: 92px; background-color: rgba(255,255,255,0.95); border: 2px solid rgba(255,255,255,0.3); border-radius: 8px; font-weight: 600; color: #7c3aed;">
+                                                    <option value="month">Mes</option>
+                                                    <option value="date">Día</option>
+                                                </select>
+                                                <input id="filtro-fecha-gastos" type="month" class="form-control form-control-sm" style="width: min(100%, 170px); background-color: rgba(255,255,255,0.95); border: 2px solid rgba(255,255,255,0.3); border-radius: 8px; font-weight: 500; color: #7c3aed;">
+                                            </div>
                                             <select id="filtro-vista-gastos" class="form-select form-select-sm" style="width: min(100%, 220px); background-color: rgba(255,255,255,0.95); border: 2px solid rgba(255,255,255,0.3); border-radius: 8px; font-weight: 500; color: #7c3aed;">
                                                 <option value="total">📊 Vista General</option>
                                                 <option value="manual">💰 Solo Gastos Manuales</option>
                                                 <option value="pedidos">📦 Solo Insumos</option>
                                             </select>
+                                            <button id="btn-export-gastos-excel" class="btn btn-sm fw-bold" style="background-color: rgba(16, 185, 129, 0.25); color: white; border: 2px solid rgba(110, 231, 183, 0.75); border-radius: 8px; transition: all 0.3s ease;" onmouseover="this.style.backgroundColor='rgba(16, 185, 129, 0.38)'; this.style.borderColor='rgba(167, 243, 208, 0.9)'; this.style.transform='scale(1.05)'" onmouseout="this.style.backgroundColor='rgba(16, 185, 129, 0.25)'; this.style.borderColor='rgba(110, 231, 183, 0.75)'; this.style.transform='scale(1)'">
+                                                <i class="bi bi-file-earmark-excel me-1"></i>Exportar Excel
+                                            </button>
                                             <button id="btn-export-gastos-pdf" class="btn btn-sm fw-bold" style="background-color: rgba(255,255,255,0.2); color: white; border: 2px solid rgba(255,255,255,0.6); border-radius: 8px; transition: all 0.3s ease;" onmouseover="this.style.backgroundColor='rgba(255,255,255,0.35)'; this.style.borderColor='rgba(255,255,255,0.8)'; this.style.transform='scale(1.05)'" onmouseout="this.style.backgroundColor='rgba(255,255,255,0.2)'; this.style.borderColor='rgba(255,255,255,0.6)'; this.style.transform='scale(1)'">
                                                 <i class="bi bi-file-earmark-pdf me-1"></i>Exportar PDF
                                             </button>
@@ -470,9 +520,48 @@
                                         </tr>
                                     </thead>
                                     <tbody id="tbody-proveedores">
-                                        <tr><td colspan="7" class="text-center text-muted py-4">Cargando proveedores...</td></tr>
+                                        <tr><td colspan="5" class="text-center text-muted py-4">Cargando proveedores...</td></tr>
                                     </tbody>
                                 </table>
+                        </div>
+
+                        <!-- Configuración de Envío Automático de Pedidos -->
+                        <div class="card p-4 shadow-sm border-0 mb-4" id="panel-config-webhook">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5 class="fw-bold text-purple m-0"><i class="bi bi-gear me-2"></i>Configuración de Envío de Pedidos por Correo</h5>
+                                <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-webhook" aria-expanded="false">
+                                    <i class="bi bi-chevron-down"></i>
+                                </button>
+                            </div>
+                            <div class="collapse" id="collapse-webhook">
+                                <p class="text-muted small mb-3">
+                                    <i class="bi bi-info-circle me-1"></i>
+                                    Configura la URL del Webhook de Google Apps Script y el correo de envío para que los pedidos a proveedores se envíen automáticamente por correo.
+                                </p>
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold"><i class="bi bi-link-45deg me-1"></i>URL del Webhook (Google Apps Script)</label>
+                                    <input type="url" id="input-webhook-url" class="form-control form-control-sm font-monospace"
+                                        placeholder="https://script.google.com/macros/s/AKfyc.../exec">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold"><i class="bi bi-envelope me-1"></i>Correo de Envío (Gmail del Script)</label>
+                                    <input type="email" id="input-sender-email" class="form-control form-control-sm"
+                                        placeholder="pedidosbrasilacai@gmail.com">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold"><i class="bi bi-key me-1"></i>Clave del Webhook (opcional)</label>
+                                    <input type="text" id="input-webhook-key" class="form-control form-control-sm"
+                                        placeholder="Dejar vacío si no está configurada">
+                                </div>
+                                <div class="d-flex gap-2">
+                                    <button id="btn-guardar-webhook" class="btn btn-success btn-sm fw-bold">
+                                        <i class="bi bi-floppy me-1"></i>Guardar Configuración
+                                    </button>
+                                    <button id="btn-test-webhook" class="btn btn-outline-primary btn-sm fw-bold">
+                                        <i class="bi bi-send me-1"></i>Enviar correo de prueba
+                                    </button>
+                                </div>
+                                <div id="webhook-status" class="mt-2 small"></div>
                             </div>
                         </div>
                     </section>
@@ -499,6 +588,26 @@
                                 <label class="form-label small fw-bold">Número de teléfono <span class="text-muted">(opcional)</span></label>
                                 <input type="text" id="input-nuevo-proveedor-telefono" class="form-control" placeholder="Ej: 911 34 13 23">
                             </div>
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold">Correos electrónicos del proveedor</label>
+                                <div class="input-group mb-2">
+                                    <input type="email" id="input-nuevo-proveedor-email-item" class="form-control" placeholder="correo@proveedor.com">
+                                    <button id="btn-add-email-proveedor" type="button" class="btn btn-outline-primary fw-bold">Agregar</button>
+                                </div>
+                                <div id="nuevo-proveedor-emails-lista" class="mb-2"><small class="text-muted">Sin correos agregados</small></div>
+                                <textarea id="input-nuevo-proveedor-emails" class="form-control" rows="2" placeholder="Opcional: pega varios correos separados por coma, punto y coma o salto de línea"></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold">Asignación de tiendas</label>
+                                <select id="nuevo-proveedor-asignacion" class="form-select mb-2">
+                                    <option value="todas">Todas las tiendas</option>
+                                    <option value="especificas">Tiendas específicas</option>
+                                </select>
+                                <div id="nuevo-proveedor-tiendas-wrapper" style="display:none;">
+                                    <div id="nuevo-proveedor-tiendas-lista" class="border rounded p-2 bg-light"></div>
+                                </div>
+                                <small class="text-muted">Si eliges tiendas específicas, solo aparecerá en esas tiendas.</small>
+                            </div>
                             <div class="d-flex gap-2 justify-content-end">
                                 <button id="btn-cancel-proveedor" class="btn btn-secondary fw-bold">Cancelar</button>
                                 <button id="btn-crear-proveedor" class="btn btn-primary fw-bold">
@@ -507,6 +616,40 @@
                             </div>
                         </div>
                     </div>
+
+                    <section id="sec-copias" style="display:none;">
+                        <div class="card p-4 shadow-sm border-0 mb-4">
+                            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                                <h5 class="fw-bold text-purple m-0"><i class="bi bi-journal-bookmark me-2"></i>Copias de Pedidos por Fecha</h5>
+                                <div class="d-flex gap-2 flex-wrap">
+                                    <input type="date" id="copias-fecha" class="form-control form-control-sm" style="width: 190px;">
+                                    <select id="copias-tienda" class="form-select form-select-sm" style="width: 220px;">
+                                        <option value="todas">Todas las tiendas</option>
+                                    </select>
+                                    <button id="btn-recargar-copias" class="btn btn-sm btn-outline-primary fw-bold">
+                                        <i class="bi bi-arrow-clockwise me-1"></i>Recargar
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Fecha</th>
+                                            <th>Tienda</th>
+                                            <th>Proveedor</th>
+                                            <th>Producto</th>
+                                            <th class="text-center">Cantidad</th>
+                                            <th>Responsable</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tbody-copias-pedidos">
+                                        <tr><td colspan="6" class="text-center text-muted py-4">Cargando copias...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </section>
 
                     <!-- Employee Management Section (Solo Admin/Franquiciado) -->
                     <section id="sec-empleados" style="display:none;">
@@ -557,7 +700,7 @@
                     <div class="mb-3">
                         <label class="form-label small fw-bold" style="color: #7c3aed; letter-spacing: 0.5px;">Contraseña <span class="text-danger">*</span></label>
                         <div class="password-field">
-                            <input type="password" id="emp-password" class="form-control" placeholder="Mínimo 6 caracteres" required style="border: 2px solid #e5e7eb; border-radius: 8px; padding: 10px 12px; transition: all 0.3s ease;" onmouseover="this.style.borderColor='#7c3aed';" onmouseout="this.style.borderColor='#e5e7eb';">
+                            <input type="password" id="emp-password" class="form-control" placeholder="Mínimo 6 caracteres" autocomplete="new-password" spellcheck="false" required style="border: 2px solid #e5e7eb; border-radius: 8px; padding: 10px 12px; transition: all 0.3s ease;" onmouseover="this.style.borderColor='#7c3aed';" onmouseout="this.style.borderColor='#e5e7eb';">
                             <button type="button" class="btn-toggle-password" onclick="togglePasswordVisibility('emp-password')">
                                 <i class="bi bi-eye-slash"></i>
                             </button>
@@ -655,14 +798,15 @@
     <script src="assets/js/models/providerModel.js?v=20260327"></script>
     <script src="assets/js/controllers/authController.js?v=20260317"></script>
     <script src="assets/js/controllers/inventoryController.js?v=20260317"></script>
-    <script src="assets/js/controllers/stockfaltantecontroller.js?v=20260327"></script>
+    <script src="assets/js/controllers/stockfaltantecontroller.js?v=20260715b"></script>
     <script src="assets/js/controllers/reportController.js?v=20260320"></script>
     <script src="assets/js/controllers/financeController.js?v=20260320"></script>
     <script src="assets/js/controllers/employeeController.js?v=20260317"></script>
     <script src="assets/js/controllers/tiendaController.js?v=20260317"></script>
     <script src="assets/js/controllers/providerController.js?v=20260327"></script>
-    <script src="assets/js/controllers/pdfExportController.js?v=20260507"></script>
-    <script src="assets/js/utils/pdfGenerator.js?v=20260330"></script>
+    <script src="assets/js/controllers/copiaspedidoscontroller.js?v=20260711"></script>
+    <script src="assets/js/controllers/pdfExportController.js?v=20260715b"></script>
+    <script src="assets/js/utils/pdfGenerator.js?v=20260715b"></script>
     <script src="assets/js/controllers/appController.js?v=20260317"></script>
     <script src="assets/js/pwa-install.js"></script>
     <script src="assets/js/update-checker.js"></script>

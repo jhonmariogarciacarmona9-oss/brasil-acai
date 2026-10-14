@@ -122,6 +122,24 @@ body {
     font-weight: bold;
 }
 
+#check-all-faltante,
+.check-faltante-item {
+    width: 16px !important;
+    height: 16px !important;
+    min-width: 16px;
+    min-height: 16px;
+    border-radius: 2px !important;
+    border: 1.5px solid #64748b;
+    vertical-align: middle;
+    cursor: pointer;
+}
+
+#check-all-faltante:checked,
+.check-faltante-item:checked {
+    background-color: #2563eb;
+    border-color: #1d4ed8;
+}
+
 .table-responsive {
     max-height: 65vh;
     overflow-y: auto;
@@ -456,6 +474,18 @@ canvas {
         flex: 1;
         min-width: 70px;
     }
+
+    #btn-eliminar-lista,
+    #btn-export-stock-excel,
+    #btn-export-stock-pdf {
+        width: 150px;
+        height: 42px;
+        box-sizing: border-box;
+        flex: 0 0 150px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
     
     /* Badges */
     .badge {
@@ -524,9 +554,23 @@ canvas {
     :root {
         font-size: 12px;
     }
-    
+
+    html, body {
+        overflow-x: auto;
+    }
+
+    .container-fluid {
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+    }
+
+    main.col-12 {
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+    }
+
     .container, .dashboard-container {
-        padding: 8px;
+        padding: 12px;
     }
     
     /* Navegación */
@@ -775,15 +819,43 @@ canvas {
         justify-content: flex-start !important;
     }
     
-    /* Botones de exportar PDF en móviles */
+    /* Botones de exportación en móviles */
+    #btn-eliminar-lista,
+    #btn-export-reportes-excel,
     #btn-export-reportes-pdf,
+    #btn-export-gastos-excel,
     #btn-export-gastos-pdf,
+    #btn-export-stock-excel,
     #btn-export-stock-pdf {
         width: 100% !important;
         padding: 8px 12px !important;
         font-size: 12px !important;
         margin-top: 8px;
         display: block !important;
+    }
+
+    /* Botonera de la lista de compra: evitar que se salga del ancho */
+    #sec-stock-faltante > .d-flex.justify-content-between.align-items-center {
+        gap: 0.75rem;
+    }
+
+    #sec-stock-faltante > .d-flex.justify-content-between.align-items-center > .d-flex.gap-2 {
+        width: 100%;
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px !important;
+    }
+
+    #sec-stock-faltante > .d-flex.justify-content-between.align-items-center > .d-flex.gap-2 .btn {
+        width: 100% !important;
+        margin-top: 0 !important;
+        padding: 6px 8px !important;
+        font-size: 11px !important;
+        min-height: 36px;
+    }
+
+    #sec-stock-faltante > .d-flex.justify-content-between.align-items-center > .d-flex.gap-2 #btn-export-stock-pdf {
+        grid-column: 1 / -1;
     }
     
     /* Contenedores de filtros en móviles */
@@ -1538,10 +1610,10 @@ img[alt*="logo"],
     background-color: rgba(255, 255, 255, 0.98) !important;
 }
 
-/* Ensure images are crisp */
+/* Keep logos and photos in smooth high-quality rendering */
 img {
     image-rendering: -webkit-optimize-contrast;
-    image-rendering: crisp-edges;
+    image-rendering: auto;
 }
 
 /* SVG and PNG improvements */

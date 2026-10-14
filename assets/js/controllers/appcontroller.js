@@ -118,10 +118,10 @@ const appController = {
             finWrap.style.display = (isAdmin || isFranquiciado) ? 'block' : 'none';
         }
 
-        // Solo Admin (incluye Auxiliar Admin) puede acceder a gestión de proveedores
+        // Admin y Franquiciado pueden acceder a gestión de proveedores
         const provWrap = document.getElementById('link-proveedores-wrap');
         if (provWrap) {
-            provWrap.style.display = isAdmin ? 'block' : 'none';
+            provWrap.style.display = (isAdmin || isFranquiciado) ? 'block' : 'none';
         }
 
         // Admin, Auxiliar Administrativo y Franquiciado pueden ver copias de pedidos
@@ -130,16 +130,15 @@ const appController = {
             copiasWrap.style.display = (isAdmin || isFranquiciado) ? 'block' : 'none';
         }
 
-        // Solo Admin (no Auxiliar Admin) puede acceder a gestión de empleados
+        // Admin (incluye Auxiliar Admin) y Franquiciado pueden acceder a gestión de empleados/usuarios
         const empWrap = document.getElementById('link-empleados-wrap');
         if (empWrap) {
-            empWrap.style.display = isAdminOnly ? 'block' : 'none';
+            empWrap.style.display = (isAdmin || isFranquiciado) ? 'block' : 'none';
         }
         
-        // Solo Admin (no Auxiliar Admin) puede crear empleados
         const btnAddEmployee = document.getElementById('btn-add-employee');
         if (btnAddEmployee) {
-            btnAddEmployee.style.display = isAdminOnly ? 'block' : 'none';
+            btnAddEmployee.style.display = isAdmin ? 'block' : 'none';
         }
         
         // Admin (incluye Auxiliar Admin) puede acceder a gestión de tiendas

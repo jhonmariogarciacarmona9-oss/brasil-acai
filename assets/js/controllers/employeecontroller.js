@@ -2,9 +2,11 @@ const employeeController = {
     isCreatingNewEmployee: false, // 🔧 Flag confiable para distinguir creación de edición
     
     init() {
-        // Solo administrador puede inicializar el controlador de empleados
-        if (!window.authModel.isAdmin()) {
-            console.warn('Acceso denegado: Solo administrador puede gestionar empleados');
+        const profile = window.authModel.getProfile();
+        const rol = (profile?.rol || '').toLowerCase().trim();
+        const tienePermiso = window.authModel.isAdmin() || rol === 'franquiciado';
+        if (!tienePermiso) {
+            console.warn('Acceso denegado: Solo administradores y franquiciados pueden ver gestión de usuarios');
             return;
         }
         this.bindEvents();
@@ -199,12 +201,18 @@ const employeeController = {
             });
 
             if (authError) {
-                console.error("Error en Auth:", authError);
-                window.ui.showNotify('❌ Error', authError.message, 'error');
-                return; // IMPORTANTE: Salir aquí si hay error en Auth
+                const msg = (authError.message || '').toLowerCase();
+                const code = authError.code || '';
+                const isAlreadyRegistered = msg.includes('already') || code === 'user_already_exists';
+                
+                if (!isAlreadyRegistered) {
+                    console.error("Error en Auth:", authError);
+                    window.ui.showNotify('❌ Error', authError.message, 'error');
+                    return;
+                }
             }
 
-            // 3. Si Auth fue exitoso, criar el perfil
+            // 3. Si Auth fue exitoso o el usuario ya existía en Auth, crear el perfil
             const { error: profileError } = await window._supabase
                 .from('Tabla De Perfiles')
                 .insert([{

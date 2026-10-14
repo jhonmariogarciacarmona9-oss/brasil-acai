@@ -1,47 +1,88 @@
 const authModel = {
     userProfile: null,
     async signIn(email, password) {
-        const cleanEmail = email.trim().toLowerCase();
-        
-        // Buscar usuario en Tabla De Perfiles
-        const { data: profile, error } = await window._supabase
-            .from('Tabla De Perfiles')
-            .select('*')
-            .ilike('nombre_usuario', cleanEmail)
-            .single();
-
-        if (error || !profile) {
-            throw new Error('Usuario no encontrado en el sistema');
+        const cleanEmail = String(email || '').trim().toLowerCase();
+        if (!cleanEmail || !password) {
+            throw new Error('Por favor ingresa tu correo y contraseña');
         }
 
-        // Validar contraseña contra Supabase Auth
+        // 1. Buscar perfil en Tabla De Perfiles (insensible a mayúsculas y espacios)
+        let profile = null;
         try {
-            const { error: authError } = await window._supabase.auth.signInWithPassword({ 
-                email: cleanEmail, 
-                password: password 
-            });
-            
-            // Si hay error de autenticación
-            if (authError) {
-                // Mensaje específico por tipo de error
-                if (authError.message.includes('Invalid login credentials') || authError.message.includes('invalid_grant')) {
-                    throw new Error('Contraseña incorrecta');
-                } else if (authError.message.includes('Email not confirmed')) {
-                    throw new Error('Email no confirmado. Revisa tu correo para activar la cuenta');
-                } else {
-                    throw new Error(`Error de autenticación: ${authError.message}`);
-                }
+            const { data: profiles, error: profileError } = await window._supabase
+                .from('Tabla De Perfiles')
+                .select('*');
+
+            if (profileError) {
+                console.error('⚠️ Error consultando Tabla De Perfiles:', profileError);
+                throw new Error('Error de conexión con la base de datos: ' + profileError.message);
             }
-        } catch (authErr) {
-            // Si el error ya es nuestro (contraseña incorrecta, etc.), pasarlo
-            if (authErr.message && authErr.message.includes('Contraseña')) {
-                throw authErr;
+
+            if (profiles && profiles.length > 0) {
+                profile = profiles.find(p => String(p.nombre_usuario || '').trim().toLowerCase() === cleanEmail);
             }
-            // Si hay otro error, indicar que deben registrarse
-            throw new Error('Usuario no encontrado en la autenticación. Contacta al administrador para que te registre correctamente');
+        } catch (e) {
+            if (e.message && e.message.includes('Error de conexión')) throw e;
+            console.warn('⚠️ Error consultando Tabla De Perfiles:', e);
         }
-        
-        // Usar el perfil de la Tabla De Perfiles
+
+        // 2. Validar si el perfil existe
+        if (!profile) {
+            throw new Error('Usuario no encontrado en el sistema. Por favor verifica que el correo esté bien escrito');
+        }
+
+        // 3. Validar estado del perfil
+        if (profile.activo === false) {
+            try { await window._supabase.auth.signOut(); } catch (_) {}
+            throw new Error('Tu cuenta ha sido desactivada. Contacta al administrador');
+        }
+
+        // 4. Intentar autenticar con Supabase Auth
+        let authRes = await window._supabase.auth.signInWithPassword({ 
+            email: cleanEmail, 
+            password: password 
+        });
+
+        if (authRes.error) {
+            console.warn('⚠️ signInWithPassword falló:', authRes.error.message);
+            // Intentar registrar el usuario en Auth si existe en la BD pero aún no en Auth
+            try {
+                const signUpRes = await window._supabase.auth.signUp({ 
+                    email: cleanEmail, 
+                    password: password 
+                });
+                
+                if (signUpRes.error) {
+                    const msg = (signUpRes.error.message || '').toLowerCase();
+                    const code = signUpRes.error.code || '';
+                    const isAlreadyRegistered = msg.includes('already') || code === 'user_already_exists';
+                    
+                    if (isAlreadyRegistered) {
+                        throw new Error('Contraseña incorrecta. Por favor verifica tus credenciales');
+                    } else {
+                        throw new Error(authRes.error.message || signUpRes.error.message);
+                    }
+                } else {
+                    // Tras el registro exitoso, volver a iniciar sesión para asegurar el token de sesión
+                    authRes = await window._supabase.auth.signInWithPassword({ 
+                        email: cleanEmail, 
+                        password: password 
+                    });
+                    if (authRes.error) {
+                        throw new Error('Error al iniciar sesión tras registrar la cuenta en Auth: ' + authRes.error.message);
+                    }
+                }
+            } catch (err) {
+                throw err;
+            }
+        }
+
+        // 5. Verificar que la sesión activa fue creada correctamente
+        const { data: { session } } = await window._supabase.auth.getSession();
+        if (!session && !authRes.data?.session) {
+            throw new Error('No se pudo establecer una sesión activa en Supabase Auth');
+        }
+
         this.userProfile = profile;
         this.saveSession();
         return this.userProfile;

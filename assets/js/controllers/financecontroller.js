@@ -47,6 +47,30 @@ const financeController = {
             this.renderFinanceStats();
         };
 
+        const filtroPeriodo = document.getElementById('filtro-periodo-gastos');
+        const filtroFecha = document.getElementById('filtro-fecha-gastos');
+
+        if (filtroPeriodo) {
+            filtroPeriodo.onchange = (e) => {
+                if (filtroFecha) {
+                    const now = new Date();
+                    if (e.target.value === 'date') {
+                        filtroFecha.type = 'date';
+                        filtroFecha.value = now.toISOString().substring(0, 10);
+                    } else {
+                        filtroFecha.type = 'month';
+                        filtroFecha.value = now.toISOString().substring(0, 7);
+                    }
+                }
+                this.renderFinanceStats();
+            };
+        }
+
+        if (filtroFecha) {
+            filtroFecha.onchange = () => this.renderFinanceStats();
+            filtroFecha.oninput = () => this.renderFinanceStats();
+        }
+
         const tiendaSelect = document.getElementById('tiendaSelect');
         if (tiendaSelect) tiendaSelect.addEventListener('change', () => {
             this.renderFinanceStats();
@@ -170,9 +194,66 @@ const financeController = {
             const isAdmin = rol === 'administrador' || rol === 'auxiliar_administrativo';
             const tiendaSeleccionada = document.getElementById('tiendaSelect')?.value || 'todas';
             
-            const expenses = window.expenseModel.expenses;
-            const orders = window.orderModel.reportes;
+            const filtroPeriodo = document.getElementById('filtro-periodo-gastos')?.value || 'month';
+            const filtroFechaInput = document.getElementById('filtro-fecha-gastos');
+            
+            if (filtroFechaInput && !filtroFechaInput.value) {
+                const now = new Date();
+                filtroFechaInput.value = filtroPeriodo === 'date'
+                    ? now.toISOString().substring(0, 10)
+                    : now.toISOString().substring(0, 7);
+            }
+            const fechaFiltroVal = filtroFechaInput?.value || '';
 
+            // Actualizar etiqueta del período
+            const periodLabel = document.getElementById('finance-period-label');
+            if (periodLabel && fechaFiltroVal) {
+                if (filtroPeriodo === 'month') {
+                    const [y, m] = fechaFiltroVal.split('-');
+                    const dateObj = new Date(parseInt(y), parseInt(m) - 1, 1);
+                    const monthName = dateObj.toLocaleString('es-ES', { month: 'long', year: 'numeric' });
+                    periodLabel.innerText = monthName.charAt(0).toUpperCase() + monthName.slice(1);
+                } else {
+                    const d = new Date(fechaFiltroVal);
+                    periodLabel.innerText = d.toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
+                }
+            }
+
+            const allExpenses = window.expenseModel.expenses || [];
+            const allOrders = window.orderModel.reportes || [];
+
+            // Filtrar gastos manuales por fecha/mes
+            const expenses = allExpenses.filter(e => {
+                if (!fechaFiltroVal) return true;
+                const dateStr = (e.fecha || '').substring(0, 10);
+                if (filtroPeriodo === 'month') {
+                    return dateStr.substring(0, 7) === fechaFiltroVal;
+                } else {
+                    return dateStr === fechaFiltroVal;
+                }
+            });
+
+            // Filtrar pedidos por fecha/mes
+            const orders = allOrders.filter(ped => {
+                if (!fechaFiltroVal) return true;
+                const rawFecha = ped.created_at || ped.fecha || '';
+                let dateStr = '';
+                if (typeof rawFecha === 'string' && /^\d{4}-\d{2}-\d{2}/.test(rawFecha)) {
+                    dateStr = rawFecha.substring(0, 10);
+                } else {
+                    try {
+                        const d = new Date(rawFecha);
+                        if (!isNaN(d.getTime())) {
+                            dateStr = d.toISOString().substring(0, 10);
+                        }
+                    } catch (_) {}
+                }
+                if (filtroPeriodo === 'month') {
+                    return dateStr.substring(0, 7) === fechaFiltroVal;
+                } else {
+                    return dateStr === fechaFiltroVal;
+                }
+            });
 
             let totalManual = 0;
             let totalOrders = 0;
@@ -234,7 +315,7 @@ const financeController = {
             }
 
             this.renderChart(categories);
-            this.renderGastosPorTienda();
+            this.renderGastosPorTienda(expenses, orders);
             this.renderExpensesTable(expenses);
         } catch (err) {
             console.error('❌ Error en renderFinanceStats:', err);
@@ -460,12 +541,12 @@ const financeController = {
         }
     },
 
-    renderGastosPorTienda() {
+    renderGastosPorTienda(filteredExpenses = null, filteredOrders = null) {
         const canvas = document.getElementById('chartGastosPorTienda');
         if (!canvas) return;
 
-        const expenses = window.expenseModel.expenses || [];
-        const orders = window.orderModel.reportes || [];
+        const expenses = filteredExpenses || window.expenseModel.expenses || [];
+        const orders = filteredOrders || window.orderModel.reportes || [];
         const gastosPorTienda = {};
         const tiendaSeleccionada = document.getElementById('tiendaSelect')?.value || 'todas';
 

@@ -230,7 +230,10 @@
                         <div class="card p-4 shadow-sm border-0 mb-4">
                             <div class="d-flex justify-content-between align-items-center mb-3">
                                 <h5 class="fw-bold text-purple m-0">Gestión de Inventario</h5>
-                                <div class="gap-2 d-flex">
+                                <div class="gap-2 d-flex flex-wrap align-items-center">
+                                    <button id="btn-modo-ordenar" class="btn btn-sm btn-outline-purple fw-bold" title="Reordenar productos por tienda">
+                                        <i class="bi bi-arrow-down-up me-1"></i>Personalizar Orden
+                                    </button>
                                     <button id="btn-add-product" class="btn btn-sm btn-primary fw-bold" title="Agregar nuevo producto">
                                         <i class="bi bi-plus-circle me-1"></i>Nuevo Producto
                                     </button>
@@ -520,6 +523,45 @@
                                         <tr><td colspan="5" class="text-center text-muted py-4">Cargando proveedores...</td></tr>
                                     </tbody>
                                 </table>
+                        </div>
+
+                        <!-- Configuración de Envío Automático de Pedidos -->
+                        <div class="card p-4 shadow-sm border-0 mb-4" id="panel-config-webhook">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5 class="fw-bold text-purple m-0"><i class="bi bi-gear me-2"></i>Configuración de Envío de Pedidos por Correo</h5>
+                                <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-webhook" aria-expanded="false">
+                                    <i class="bi bi-chevron-down"></i>
+                                </button>
+                            </div>
+                            <div class="collapse" id="collapse-webhook">
+                                <p class="text-muted small mb-3">
+                                    <i class="bi bi-info-circle me-1"></i>
+                                    Configura la URL del Webhook de Google Apps Script y el correo de envío para que los pedidos a proveedores se envíen automáticamente por correo.
+                                </p>
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold"><i class="bi bi-link-45deg me-1"></i>URL del Webhook (Google Apps Script)</label>
+                                    <input type="url" id="input-webhook-url" class="form-control form-control-sm font-monospace"
+                                        placeholder="https://script.google.com/macros/s/AKfyc.../exec">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold"><i class="bi bi-envelope me-1"></i>Correo de Envío (Gmail del Script)</label>
+                                    <input type="email" id="input-sender-email" class="form-control form-control-sm"
+                                        placeholder="pedidosbrasilacai@gmail.com">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold"><i class="bi bi-key me-1"></i>Clave del Webhook (opcional)</label>
+                                    <input type="text" id="input-webhook-key" class="form-control form-control-sm"
+                                        placeholder="Dejar vacío si no está configurada">
+                                </div>
+                                <div class="d-flex gap-2">
+                                    <button id="btn-guardar-webhook" class="btn btn-success btn-sm fw-bold">
+                                        <i class="bi bi-floppy me-1"></i>Guardar Configuración
+                                    </button>
+                                    <button id="btn-test-webhook" class="btn btn-outline-primary btn-sm fw-bold">
+                                        <i class="bi bi-send me-1"></i>Enviar correo de prueba
+                                    </button>
+                                </div>
+                                <div id="webhook-status" class="mt-2 small"></div>
                             </div>
                         </div>
                     </section>
@@ -763,7 +805,7 @@
     <script src="assets/js/controllers/tiendaController.js?v=20260317"></script>
     <script src="assets/js/controllers/providerController.js?v=20260327"></script>
     <script src="assets/js/controllers/copiaspedidoscontroller.js?v=20260711"></script>
-    <script src="assets/js/controllers/pdfExportController.js?v=20260715b"></script>
+    <script src="assets/js/controllers/pdfExportController.js?v=20261012a"></script>
     <script src="assets/js/utils/pdfGenerator.js?v=20260715b"></script>
     <script src="assets/js/controllers/appController.js?v=20260317"></script>
     <script src="assets/js/pwa-install.js"></script>

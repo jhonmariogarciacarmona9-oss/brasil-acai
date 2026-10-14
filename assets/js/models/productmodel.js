@@ -316,7 +316,7 @@ const productModel = {
         }
     },
 
-    async deleteProducto(productoId) {
+    async deleteProducto(productoId, tiendaStr = null) {
         try {
             if (!productoId) {
                 throw new Error('ID de producto requerido');
@@ -328,8 +328,34 @@ const productModel = {
                 throw new Error('Producto no encontrado');
             }
 
+            const tiendaNorm = String(tiendaStr || '').trim();
+            const esEspecifica = tiendaNorm && tiendaNorm.toLowerCase() !== 'todas' && tiendaNorm.toLowerCase() !== 'todas las tiendas';
 
-            // Eliminar registros de stock_por_tienda
+            if (esEspecifica) {
+                // Eliminar producto solo de la tienda especificada
+                const tienda = this.tiendas.find(t => t.nombre_tienda === tiendaNorm);
+                if (tienda) {
+                    const { error: stockError } = await window._supabase
+                        .from('stock_por_tienda')
+                        .delete()
+                        .eq('producto_id', productoId)
+                        .eq('tienda_id', tienda.id);
+
+                    if (stockError) {
+                        console.error('Error al eliminar registro de stock de tienda:', stockError);
+                        throw stockError;
+                    }
+                }
+
+                // Limpiar cache local para esta tienda
+                if (this.stockPorTienda[productoId] && this.stockPorTienda[productoId][tiendaNorm]) {
+                    delete this.stockPorTienda[productoId][tiendaNorm];
+                }
+
+                return true;
+            }
+
+            // Eliminar registros de stock_por_tienda para todas las tiendas
             const { error: stockError } = await window._supabase
                 .from('stock_por_tienda')
                 .delete()
@@ -339,7 +365,6 @@ const productModel = {
                 console.error('Error al eliminar registros de stock:', stockError);
                 throw stockError;
             }
-
 
             // Eliminar el producto de la tabla productos
             const { error: prodError } = await window._supabase
@@ -351,7 +376,6 @@ const productModel = {
                 console.error('Error al eliminar producto:', prodError);
                 throw prodError;
             }
-
 
             // Actualizar el cache local
             this.productosBase = this.productosBase.filter(p => p.id !== productoId);

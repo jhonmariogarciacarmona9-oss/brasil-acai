@@ -458,6 +458,238 @@ const pdfExportController = {
             console.error('❌ Error exportando stock faltante a Excel:', error);
             window.ui.showNotify(`❌ Error: ${error.message}`, 'danger');
         }
+    },
+
+    /**
+     * Exporta e inicia envío automático por email/PDF a los proveedores seleccionados
+     */
+    async exportarProveedoresSeleccionadosPDF(grupos) {
+        try {
+            if (!grupos || grupos.length === 0) {
+                window.ui.showNotify('⚠️ No hay elementos seleccionados para enviar.', 'warning');
+                return;
+            }
+
+            console.log('✉️ Procesando envío a proveedores para grupos:', grupos);
+
+            // Agrupar por proveedor
+            const porProveedor = {};
+            grupos.forEach(g => {
+                const provNombre = g.proveedor || 'Sin Proveedor';
+                if (!porProveedor[provNombre]) {
+                    porProveedor[provNombre] = {
+                        nombre: provNombre,
+                        emails: [],
+                        items: []
+                    };
+                }
+
+                if (window.providerModel) {
+                    const provObj = window.providerModel.getProveedores(false).find(p => String(p.nombre).trim().toLowerCase() === String(provNombre).trim().toLowerCase());
+                    if (provObj) {
+                        if (Array.isArray(provObj.emails) && provObj.emails.length > 0) {
+                            provObj.emails.forEach(em => {
+                                if (em && !porProveedor[provNombre].emails.includes(em)) {
+                                    porProveedor[provNombre].emails.push(em);
+                                }
+                            });
+                        }
+                        if (provObj.email) {
+                            const split = String(provObj.email).split(/[;,\n]/).map(s => s.trim().toLowerCase()).filter(Boolean);
+                            split.forEach(em => {
+                                if (em && !porProveedor[provNombre].emails.includes(em)) {
+                                    porProveedor[provNombre].emails.push(em);
+                                }
+                            });
+                        }
+                    }
+                }
+
+                (g.items || []).forEach(item => {
+                    porProveedor[provNombre].items.push({
+                        producto: g.producto,
+                        tienda: item.tienda,
+                        cantidad: item.cantidad,
+                        precio: item.precio,
+                        stock_actual: item.stock_actual,
+                        responsable: item.responsable,
+                        fecha: item.fecha,
+                        emailProveedor: item.emailProveedor || ''
+                    });
+
+                    if (item.emailProveedor && !porProveedor[provNombre].emails.includes(item.emailProveedor)) {
+                        porProveedor[provNombre].emails.push(item.emailProveedor);
+                    }
+                });
+            });
+
+            const listProveedores = Object.values(porProveedor);
+
+            // Enviar desde el backend evita CORS de Apps Script y el fallback mailto
+            // que abre una pestaña about:blank si el navegador no tiene cliente de correo.
+            if (!window._supabase?.functions?.invoke) {
+                window.ui.showNotify('No está disponible la conexión con Supabase. Recarga la aplicación e inténtalo de nuevo.', 'danger');
+                return;
+            }
+
+            const senderEmail = localStorage.getItem('apps_script_sender_email') || '';
+            const orders = listProveedores.map(provData => ({
+                proveedor: provData.nombre,
+                correos: provData.emails,
+                items: provData.items.map(item => ({
+                    producto: item.producto || '-',
+                    cantidad_a_pedir: Number(item.cantidad) || 0
+                })),
+                tiendas: Array.from(new Set(provData.items.map(item => String(item.tienda || '').trim()).filter(Boolean)))
+            }));
+
+            window.ui.showNotify('Enviando pedidos a los proveedores...', 'info');
+            const { data, error } = await window._supabase.functions.invoke('send-provider-orders', {
+                body: { senderEmail, orders }
+            });
+
+            if (error) {
+                console.error('Error en send-provider-orders:', error);
+                window.ui.showNotify(`No se pudo completar el envío: ${error.message || 'Error de conexión con Supabase'}`, 'danger');
+                return;
+            }
+
+            const resultados = Array.isArray(data?.results) ? data.results : [];
+            const fallidos = resultados.filter(resultado => !resultado.ok);
+            const enviadosBackend = Number(data?.sent) || resultados.filter(resultado => resultado.ok).length;
+
+            if (enviadosBackend > 0 && fallidos.length === 0) {
+                window.ui.showNotify(`Pedidos enviados correctamente a ${enviadosBackend} proveedor(es).`, 'success');
+            } else if (enviadosBackend > 0) {
+                window.ui.showNotify(`Enviados: ${enviadosBackend}. Con error: ${fallidos.map(resultado => `${resultado.proveedor}: ${resultado.detail}`).join('; ')}`, 'warning');
+            } else {
+                const detalle = fallidos.map(resultado => `${resultado.proveedor}: ${resultado.detail}`).join('; ');
+                window.ui.showNotify(`No se enviaron los pedidos${detalle ? `: ${detalle}` : '.'}`, 'danger');
+            }
+            return;
+
+            let enviados = 0;
+
+            const webhookUrl = localStorage.getItem('apps_script_webhook_url') || window.APPS_SCRIPT_WEBHOOK_URL || '';
+            const webhookKey = localStorage.getItem('apps_script_webhook_key') || '';
+
+            for (const provData of listProveedores) {
+                const nombreProv = provData.nombre;
+                const itemsProv = provData.items;
+                const emails = provData.emails;
+
+                const datosPdf = itemsProv.map(it => ({
+                    fecha: it.fecha ? new Date(it.fecha).toLocaleString('es-ES') : '-',
+                    tienda: it.tienda || '-',
+                    proveedor: nombreProv,
+                    producto: it.producto || '-',
+                    cantidad_maxima: (it.stock_actual || 0) + (it.cantidad || 0),
+                    cantidad_actual: it.stock_actual || 0,
+                    cantidad_a_pedir: it.cantidad || 0,
+                    coste: (it.cantidad || 0) * (it.precio || 0),
+                    responsable: it.responsable || '-',
+                    estado: 'pendiente'
+                }));
+
+                const filtrosHeader = {
+                    tienda: 'Varias',
+                    proveedor: nombreProv,
+                    fecha: new Date().toLocaleDateString('es-ES')
+                };
+
+                // Generar PDF en memoria (autoSave: false) sin abrir emergentes ni descargas automáticas
+                let pdfResult = null;
+                try {
+                    pdfResult = await window.pdfGenerator.generarReporteStockFaltante(`Pedido_${nombreProv}`, datosPdf, filtrosHeader, { autoSave: false });
+                } catch (pdfErr) {
+                    console.warn(`⚠️ Error generando PDF para ${nombreProv}:`, pdfErr);
+                }
+
+                if (webhookUrl && emails && emails.length > 0) {
+                    try {
+                        window.ui.showNotify(`✉️ Enviando correo automático a ${nombreProv}...`, 'info');
+
+                        let htmlBody = `<h3 style="color:#7c3aed;">Pedido de Insumos - Brasil Açaí</h3>`;
+                        htmlBody += `<p>Estimado/a <strong>${nombreProv}</strong>,</p>`;
+                        htmlBody += `<p>Adjuntamos el pedido de insumos para las tiendas de Brasil Açaí:</p>`;
+                        htmlBody += `<table border="1" cellpadding="8" cellspacing="0" style="border-collapse:collapse; width:100%; border-color:#e5e7eb;">`;
+                        htmlBody += `<tr style="background-color:#7c3aed; color:#ffffff;"><th>Producto</th><th style="text-align:center;">Cantidad</th><th>Tienda Destino</th></tr>`;
+                        itemsProv.forEach(it => {
+                            htmlBody += `<tr><td>${it.producto}</td><td style="text-align:center;"><b>${it.cantidad}</b></td><td>${it.tienda}</td></tr>`;
+                        });
+                        htmlBody += `</table><br/><p>Generado el: ${new Date().toLocaleString('es-ES')}</p><p>Gracias,<br/><b>Brasil Açaí SGP</b></p>`;
+
+                        const senderEmail = localStorage.getItem('apps_script_sender_email') || '';
+
+                        const payload = {
+                            webhookKey: webhookKey,
+                            senderEmail: senderEmail,
+                            to: emails,
+                            subject: `Pedido de Insumos Brasil Açaí - ${nombreProv}`,
+                            html: htmlBody,
+                            attachment: pdfResult?.base64 ? {
+                                filename: pdfResult.filename || `Pedido_${nombreProv}.pdf`,
+                                mimeType: 'application/pdf',
+                                base64: pdfResult.base64
+                            } : null
+                        };
+
+                        const response = await fetch(webhookUrl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                            body: JSON.stringify(payload)
+                        });
+
+                        const resData = await response.json().catch(() => ({}));
+                        if (resData.ok) {
+                            window.ui.showNotify(`✅ Correo enviado automáticamente a ${nombreProv} (${emails.join(', ')})`, 'success');
+                            enviados++;
+                        } else {
+                            console.warn('⚠️ Google Apps Script devolvió error:', resData);
+                            window.ui.showNotify(`⚠️ Error del webhook para ${nombreProv}: ${resData.error || resData.message || 'Error desconocido'}. Intenta con tu cliente de correo.`, 'warning');
+                            this._enviarMailtoFallback(emails, nombreProv, itemsProv);
+                            enviados++;
+                        }
+                    } catch (netErr) {
+                        console.error('Error enviando vía Webhook:', netErr);
+                        window.ui.showNotify(`⚠️ No se pudo conectar con el webhook. Abriendo cliente de correo...`, 'warning');
+                        this._enviarMailtoFallback(emails, nombreProv, itemsProv);
+                        enviados++;
+                    }
+                } else if (emails && emails.length > 0) {
+                    // Sin webhook configurado: abrir cliente de correo
+                    window.ui.showNotify(`ℹ️ No hay webhook configurado. Abriendo cliente de correo para ${nombreProv}...`, 'info');
+                    this._enviarMailtoFallback(emails, nombreProv, itemsProv);
+                    enviados++;
+                } else {
+                    window.ui.showNotify(`⚠️ El proveedor "${nombreProv}" no tiene un correo electrónico registrado. Ve a Proveedores para añadirlo.`, 'warning');
+                }
+            }
+
+            if (enviados > 0) {
+                window.ui.showNotify(`✅ Envío completado para ${enviados} proveedor(es).`, 'success');
+            }
+
+        } catch (err) {
+            console.error('❌ Error en exportarProveedoresSeleccionadosPDF:', err);
+            window.ui.showNotify(`❌ Error al enviar a proveedores: ${err.message}`, 'danger');
+        }
+    },
+
+    _enviarMailtoFallback(emails, nombreProv, itemsProv) {
+        const emailTo = emails.join(',');
+        const subject = encodeURIComponent(`Pedido de Insumos Brasil Açaí - ${nombreProv}`);
+
+        let bodyText = `Hola ${nombreProv},\n\nSolicitamos los siguientes insumos para las tiendas de Brasil Açaí:\n\n`;
+        itemsProv.forEach(it => {
+            bodyText += `• ${it.producto}: ${it.cantidad} unidad(es) (Tienda: ${it.tienda})\n`;
+        });
+        bodyText += `\nGenerado el: ${new Date().toLocaleString('es-ES')}\n\nGracias,\nBrasil Açaí SGP`;
+
+        const body = encodeURIComponent(bodyText);
+        const mailtoUrl = `mailto:${emailTo}?subject=${subject}&body=${body}`;
+        // Usar window.open con _blank para abrir el cliente de correo sin navegar fuera de la app
+        window.open(mailtoUrl, '_blank');
     }
 };
 

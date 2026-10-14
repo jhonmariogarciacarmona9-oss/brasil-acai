@@ -28,8 +28,13 @@ const inventoryController = {
 
     // ── Drag & Drop ─────────────────────────────────────────────────────────
     activarDragDrop(tbody) {
+        const tienda = this.getTiendaActual();
         const filas = tbody.querySelectorAll('tr[draggable="true"]');
+        let currentTouchRow = null;
+        let touchClone = null;
+
         filas.forEach(fila => {
+            // HTML5 Drag & Drop (Mouse)
             fila.addEventListener('dragstart', (e) => {
                 this.dragSrcRow = fila;
                 e.dataTransfer.effectAllowed = 'move';
@@ -56,15 +61,76 @@ const inventoryController = {
                     } else {
                         fila.parentNode.insertBefore(this.dragSrcRow, fila);
                     }
-                    // Guardar nuevo orden
                     const nuevasFila = [...tbody.querySelectorAll('tr[draggable="true"]')];
-                    const tienda = this.getTiendaActual();
-                    const nuevoOrden = nuevasFila.map(r => r.getAttribute('data-producto'));
+                    const nuevoOrden = nuevasFila.map(r => r.getAttribute('data-producto')).filter(Boolean);
                     localStorage.setItem(this.getOrdenKey(tienda), JSON.stringify(nuevoOrden));
                     window.ui?.showNotify?.('✅ Orden guardado para ' + tienda, 'success');
                 }
                 tbody.querySelectorAll('tr').forEach(r => r.classList.remove('drag-over'));
             });
+
+            // Soporte Táctil (Teléfonos / Móvil)
+            const handleCell = fila.querySelector('.drag-handle') || fila;
+            handleCell.addEventListener('touchstart', (e) => {
+                if (!this.modoOrdenar) return;
+                const touch = e.touches[0];
+                currentTouchRow = fila;
+                fila.classList.add('dragging-touch');
+
+                touchClone = fila.cloneNode(true);
+                touchClone.style.position = 'fixed';
+                touchClone.style.left = `${fila.getBoundingClientRect().left}px`;
+                touchClone.style.top = `${touch.clientY - 20}px`;
+                touchClone.style.width = `${fila.offsetWidth}px`;
+                touchClone.style.opacity = '0.85';
+                touchClone.style.zIndex = '9999';
+                touchClone.style.pointerEvents = 'none';
+                touchClone.style.background = '#f3e8ff';
+                touchClone.style.boxShadow = '0 8px 20px rgba(0,0,0,0.2)';
+                document.body.appendChild(touchClone);
+            }, { passive: true });
+
+            handleCell.addEventListener('touchmove', (e) => {
+                if (!this.modoOrdenar || !currentTouchRow || !touchClone) return;
+                const touch = e.touches[0];
+                touchClone.style.top = `${touch.clientY - 20}px`;
+
+                const elementUnderTouch = document.elementFromPoint(touch.clientX, touch.clientY);
+                if (!elementUnderTouch) return;
+                const targetRow = elementUnderTouch.closest('tr[draggable="true"]');
+
+                if (targetRow && targetRow !== currentTouchRow && tbody.contains(targetRow)) {
+                    const allRows = [...tbody.querySelectorAll('tr[draggable="true"]')];
+                    const srcIdx = allRows.indexOf(currentTouchRow);
+                    const tgtIdx = allRows.indexOf(targetRow);
+
+                    if (srcIdx < tgtIdx) {
+                        targetRow.parentNode.insertBefore(currentTouchRow, targetRow.nextSibling);
+                    } else {
+                        targetRow.parentNode.insertBefore(currentTouchRow, targetRow);
+                    }
+                }
+            }, { passive: true });
+
+            const endTouch = () => {
+                if (currentTouchRow) {
+                    currentTouchRow.classList.remove('dragging-touch');
+                    currentTouchRow = null;
+                }
+                if (touchClone) {
+                    touchClone.remove();
+                    touchClone = null;
+                }
+                if (this.modoOrdenar) {
+                    const nuevasFila = [...tbody.querySelectorAll('tr[draggable="true"]')];
+                    const nuevoOrden = nuevasFila.map(r => r.getAttribute('data-producto')).filter(Boolean);
+                    localStorage.setItem(this.getOrdenKey(tienda), JSON.stringify(nuevoOrden));
+                    window.ui?.showNotify?.('✅ Orden guardado para ' + tienda, 'success');
+                }
+            };
+
+            handleCell.addEventListener('touchend', endTouch);
+            handleCell.addEventListener('touchcancel', endTouch);
         });
     },
 
@@ -74,10 +140,12 @@ const inventoryController = {
         if (btn) {
             if (this.modoOrdenar) {
                 btn.innerHTML = '<i class="bi bi-check-circle me-1"></i>Guardar Orden';
-                btn.classList.replace('btn-outline-secondary', 'btn-success');
+                btn.classList.remove('btn-outline-purple');
+                btn.classList.add('btn-success');
             } else {
-                btn.innerHTML = '<i class="bi bi-arrow-down-up me-1"></i>Ordenar';
-                btn.classList.replace('btn-success', 'btn-outline-secondary');
+                btn.innerHTML = '<i class="bi bi-arrow-down-up me-1"></i>Personalizar Orden';
+                btn.classList.remove('btn-success');
+                btn.classList.add('btn-outline-purple');
             }
         }
         this.renderTable(document.getElementById('provSelect')?.value || 'todos');
@@ -104,6 +172,9 @@ const inventoryController = {
         const btnActualizar = document.getElementById('btn-actualizar-stock');
         if (btnActualizar) btnActualizar.addEventListener('click', () => this.actualizarStock());
 
+        const btnModoOrdenar = document.getElementById('btn-modo-ordenar');
+        if (btnModoOrdenar) btnModoOrdenar.addEventListener('click', () => this.toggleModoOrdenar());
+
         // Modal: Crear Nuevo Producto
         const btnAddProduct = document.getElementById('btn-add-product');
         if (btnAddProduct) btnAddProduct.addEventListener('click', () => this.abrirModalProducto());
@@ -121,8 +192,6 @@ const inventoryController = {
                 if (e.target === modalProduct) this.cerrarModalProducto();
             });
         }
-
-
     },
     getTiendaActual() {
         const tiendaSelect = document.getElementById('tiendaSelect');
@@ -212,6 +281,17 @@ const inventoryController = {
         }
 
         const tiendaActual = this.getTiendaActual();
+
+        // Filtrar productos eliminados específicamente para la tienda seleccionada
+        if (tiendaActual && tiendaActual !== 'todas' && tiendaActual.toLowerCase() !== 'todas las tiendas') {
+            prods = prods.filter(p => {
+                const stockMapa = window.productModel.stockPorTienda[p.id];
+                if (stockMapa && typeof stockMapa === 'object') {
+                    return Object.prototype.hasOwnProperty.call(stockMapa, tiendaActual);
+                }
+                return true;
+            });
+        }
 
         let productosOrdenados;
         if (this.modoOrdenar) {
@@ -769,13 +849,28 @@ const inventoryController = {
 
     async eliminarProducto(productoId, nombreProducto) {
         try {
-            const btnEliminar = event.target.closest('button');
+            const btnEliminar = event?.target?.closest('button');
             if (btnEliminar) btnEliminar.disabled = true;
             
+            const tiendaActual = this.getTiendaActual();
+            const isTodas = !tiendaActual || tiendaActual === 'todas' || tiendaActual.toLowerCase() === 'todas las tiendas';
+
+            const msgConfirm = isTodas
+                ? `¿Estás seguro de que deseas eliminar "${nombreProducto}" de TODAS las tiendas?`
+                : `¿Estás seguro de que deseas eliminar "${nombreProducto}" de la tienda "${tiendaActual}"?`;
+
+            if (!confirm(msgConfirm)) {
+                if (btnEliminar) btnEliminar.disabled = false;
+                return;
+            }
+
+            await window.productModel.deleteProducto(productoId, tiendaActual);
             
-            await window.productModel.deleteProducto(productoId);
-            
-            window.ui.showNotify(`✅ Producto "${nombreProducto}" eliminado correctamente`, 'success');
+            const msgNotify = isTodas
+                ? `✅ Producto "${nombreProducto}" eliminado de todas las tiendas`
+                : `✅ Producto "${nombreProducto}" eliminado de "${tiendaActual}"`;
+
+            window.ui.showNotify(msgNotify, 'success');
             
             // Recargar tabla
             await window.productModel.fetchProductos();
